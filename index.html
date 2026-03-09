@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Combat Log">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#141517">
+<title>Combat Log — D&D 2024</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#141517;--bg2:#1b1d20;--bg3:#22252a;--bg4:#2a2e34;
+  --fg:#d4d4d8;--fg2:#a1a1aa;--fg3:#71717a;--fg4:#52525b;
+  --border:#2e3138;--border2:#3f4451;
+  --accent:#7c9aff;--accent2:#5b7cfa;--accent-dim:rgba(124,154,255,0.12);
+  --red:#f87171;--red-dim:rgba(248,113,113,0.12);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.12);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.12);
+  --action:#7c9aff;--bonus:#c084fc;--reaction:#fb923c;
+  --radius:4px;
+  --left-w:330px;
+  --round-w:200px;
+  --lair-h:40px;
+  --head-h:34px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
+  font-family:'SF Mono','Menlo','Courier New',monospace;font-size:13px;}
+
+.app{display:flex;flex-direction:column;height:100%;height:100dvh;}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:var(--bg2);border-bottom:2px solid var(--border2);flex-shrink:0;flex-wrap:wrap;}
+.hdr-title{font-family:'Avenir Next','Helvetica Neue',Helvetica,sans-serif;
+  font-weight:800;font-size:15px;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--fg);white-space:nowrap;}
+.hdr-ed{font-size:9px;color:var(--fg4);font-family:'Avenir Next',sans-serif;margin-left:-6px;}
+.hdr-field{display:flex;align-items:center;gap:4px;}
+.hdr-field.grow{flex:1;min-width:100px;}
+.lbl{font-family:'Avenir Next','Helvetica Neue',sans-serif;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.08em;color:var(--fg3);white-space:nowrap;}
+.hdr-input{background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--fg);font-family:inherit;font-size:12px;padding:2px 4px;outline:none;min-width:0;}
+.hdr-input:focus{border-bottom-color:var(--accent);}
+.hdr-field.grow .hdr-input{width:100%;}
+.hdr-input.sm{width:60px;}
+.lr-box{display:flex;align-items:center;gap:5px;border:1.5px solid var(--border2);
+  border-radius:var(--radius);padding:2px 8px;white-space:nowrap;}
+.lr-box .lbl{font-size:8px;}
+
+/* ── LEGEND ── */
+.legend-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:4px 12px;background:var(--bg2);border-bottom:1px solid var(--border);
+  font-family:'Avenir Next',sans-serif;font-size:9px;color:var(--fg4);flex-shrink:0;flex-wrap:wrap;}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;
+  background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.btn{font-family:'Avenir Next','Helvetica Neue',sans-serif;font-size:11px;font-weight:600;
+  padding:6px 12px;border:1px solid var(--border2);border-radius:var(--radius);
+  background:var(--bg3);color:var(--fg2);cursor:pointer;white-space:nowrap;
+  min-height:36px;touch-action:manipulation;transition:background 0.15s,border-color 0.15s;}
+.btn:active{background:var(--bg4);border-color:var(--fg4);}
+.btn.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.btn.primary:active{background:rgba(124,154,255,0.25);}
+.btn.danger{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red);}
+.btn.danger:active{background:rgba(248,113,113,0.25);}
+.toolbar .spacer{flex:1;}
+.round-indicator{font-family:'Avenir Next',sans-serif;font-size:12px;font-weight:700;
+  color:var(--accent);letter-spacing:0.04em;}
+
+/* ── TWO-PANEL GRID ── */
+.grid-container{flex:1;display:flex;overflow:hidden;}
+
+.grid-left{width:var(--left-w);min-width:var(--left-w);flex-shrink:0;
+  display:flex;flex-direction:column;border-right:2px solid var(--border2);background:var(--bg);}
+.grid-left-head{height:var(--head-h);min-height:var(--head-h);display:flex;align-items:center;
+  background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;}
+.grid-left-body{flex:1;overflow:hidden;}
+
+.grid-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.grid-right-head{height:var(--head-h);min-height:var(--head-h);
+  background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;overflow:hidden;}
+.grid-right-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
+
+.head-cell{display:flex;align-items:center;justify-content:center;height:100%;
+  font-family:'Avenir Next',sans-serif;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;color:var(--fg3);}
+.head-init{width:52px;min-width:52px;}
+.head-ac{width:46px;min-width:46px;}
+.head-info{flex:1;padding-left:6px;justify-content:flex-start;}
+.head-round{width:var(--round-w);min-width:var(--round-w);flex-shrink:0;}
+
+.rn{display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;border:1.5px solid var(--fg4);
+  font-size:11px;font-weight:700;color:var(--fg2);cursor:pointer;}
+.rn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+
+.round-head-inner{display:flex;min-width:max-content;}
+.rounds-inner{display:flex;min-width:max-content;}
+
+/* ── ROW ── */
+.row-left,.row-right{display:flex;border-bottom:1px solid var(--border);}
+.row-left.even,.row-right.even{background:var(--bg2);}
+.row-left.lair,.row-right.lair{min-height:var(--lair-h);
+  background:var(--bg3)!important;border-bottom:2px solid var(--border2);}
+
+/* Left cells */
+.cell-init{width:52px;min-width:52px;display:flex;align-items:flex-start;
+  justify-content:center;padding:6px 2px;border-right:1px solid var(--border);}
+.cell-ac{width:46px;min-width:46px;display:flex;align-items:flex-start;
+  justify-content:center;padding:6px 2px;border-right:1px solid var(--border);}
+.cell-info{flex:1;padding:4px 6px;min-width:0;overflow:hidden;position:relative;}
+
+.num-input{width:40px;height:36px;text-align:center;background:transparent;border:none;
+  color:var(--fg);font-family:inherit;font-size:14px;font-weight:700;outline:none;
+  border-radius:var(--radius);}
+.num-input:focus{background:var(--bg4);}
+.num-input::placeholder{color:var(--fg4);}
+
+.name-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--fg);font-family:inherit;font-size:13px;font-weight:700;padding:2px 0;
+  outline:none;height:26px;}
+.name-input:focus{border-bottom-color:var(--accent);}
+.name-input::placeholder{color:var(--fg4);font-weight:400;}
+
+.info-row{display:flex;align-items:center;gap:3px;min-height:22px;}
+.info-input{background:transparent;border:none;border-bottom:1px solid var(--border);
+  color:var(--fg);font-family:inherit;font-size:11px;padding:1px 2px;outline:none;text-align:center;}
+.info-input:focus{border-bottom-color:var(--accent);}
+.info-input.w-sm{width:30px;}
+.info-input.w-lg{width:100%;text-align:left;}
+.slash{color:var(--fg4);font-size:11px;}
+
+.chk{-webkit-appearance:none;appearance:none;width:18px;height:18px;border:1.5px solid var(--fg4);
+  border-radius:2px;background:transparent;cursor:pointer;flex-shrink:0;position:relative;}
+.chk:checked{background:var(--accent);border-color:var(--accent);}
+.chk:checked::after{content:'✓';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);font-size:12px;color:var(--bg);font-weight:700;}
+.chk.round{border-radius:50%;}
+.chk.success:checked{background:var(--green);border-color:var(--green);}
+.chk.fail{border-style:dashed;}
+.chk.fail:checked{background:var(--red);border-color:var(--red);}
+.death-group{display:flex;align-items:center;gap:2px;}
+.death-sep{color:var(--fg4);font-size:10px;margin:0 2px;}
+
+.row-delete{position:absolute;right:2px;top:2px;width:22px;height:22px;border:none;
+  background:transparent;color:var(--fg4);font-size:16px;cursor:pointer;border-radius:50%;
+  display:none;align-items:center;justify-content:center;}
+.cell-info:hover .row-delete{display:flex;}
+.row-delete:active{background:var(--red-dim);color:var(--red);}
+
+/* Round cell */
+.cell-round{width:var(--round-w);min-width:var(--round-w);flex-shrink:0;
+  border-left:1px solid var(--border);padding:4px 6px;}
+.action-line{display:flex;align-items:center;gap:4px;min-height:26px;}
+.action-tag{font-family:'Avenir Next',sans-serif;font-size:10px;font-weight:800;
+  text-transform:uppercase;width:14px;flex-shrink:0;text-align:center;}
+.action-tag.a{color:var(--action);}
+.action-tag.b{color:var(--bonus);}
+.action-tag.r{color:var(--reaction);}
+.action-input{flex:1;background:transparent;border:none;
+  border-bottom:1px dashed var(--border);color:var(--fg);font-family:inherit;
+  font-size:11px;padding:2px 2px;outline:none;min-width:0;height:24px;}
+.action-input:focus{border-bottom-color:var(--fg3);border-bottom-style:solid;}
+.action-input::placeholder{color:var(--fg4);font-size:10px;}
+.free-line{display:flex;align-items:center;gap:3px;min-height:22px;}
+.free-label{width:28px;flex-shrink:0;background:transparent;border:none;
+  border-bottom:1px solid var(--border);color:var(--fg2);font-family:inherit;
+  font-size:10px;padding:1px 2px;outline:none;text-align:center;
+  text-transform:uppercase;font-weight:700;height:20px;}
+.free-label:focus{border-bottom-color:var(--accent);}
+.free-label::placeholder{color:var(--fg4);}
+.free-desc{flex:1;background:transparent;border:none;
+  border-bottom:1px dashed var(--border);color:var(--fg);font-family:inherit;
+  font-size:11px;padding:2px 2px;outline:none;min-width:0;height:20px;}
+.free-desc:focus{border-bottom-color:var(--fg3);}
+
+/* Lair */
+.lair-left{display:flex;align-items:center;gap:8px;padding:0 8px;flex:1;}
+.lair-label{font-family:'Avenir Next',sans-serif;font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:0.06em;color:var(--fg2);}
+.lair-cell{display:flex;align-items:center;justify-content:center;gap:6px;
+  width:var(--round-w);min-width:var(--round-w);flex-shrink:0;
+  border-left:1px solid var(--border);padding:4px 6px;}
+.lair-sep{color:var(--fg4);font-size:12px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;
+  display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;
+  padding:20px 24px;max-width:340px;width:90%;text-align:center;}
+.modal h3{font-family:'Avenir Next',sans-serif;font-size:15px;font-weight:700;
+  color:var(--fg);margin-bottom:8px;}
+.modal p{font-size:12px;color:var(--fg2);margin-bottom:16px;}
+.modal-btns{display:flex;gap:8px;justify-content:center;}
+
+.grid-right-body::-webkit-scrollbar{width:6px;height:6px;}
+.grid-right-body::-webkit-scrollbar-track{background:var(--bg);}
+.grid-right-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <span class="hdr-title">Combat Log</span>
+    <span class="hdr-ed">2024</span>
+    <div class="hdr-field grow">
+      <span class="lbl">Encounter</span>
+      <input class="hdr-input" id="h-encounter" placeholder="—">
+    </div>
+    <div class="hdr-field grow">
+      <span class="lbl">Player</span>
+      <input class="hdr-input" id="h-player" placeholder="—">
+    </div>
+    <div class="hdr-field">
+      <span class="lbl">Session</span>
+      <input class="hdr-input sm" id="h-session" placeholder="—">
+    </div>
+    <div class="lr-box">
+      <span class="lbl" style="font-size:8px;">Legendary Res.</span>
+      <span id="lr-checks"></span>
+    </div>
+  </div>
+
+  <div class="legend-bar">
+    <span>A = Action · B = Bonus · R = Reaction</span>
+    <span>BLI Blinded · CHM Charmed · DEF Deafened · EXH Exhaustion · FRI Frightened · GRP Grappled · INC Incapacitated · INV Invisible · PAR Paralyzed · PET Petrified · POI Poisoned · PRO Prone · RES Restrained · STN Stunned · UNC Unconscious</span>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="addCombatant()">+ Combatant</button>
+    <button class="btn" onclick="addRound()">+ Round</button>
+    <button class="btn" onclick="sortByInit()">Sort Init ↓</button>
+    <span class="spacer"></span>
+    <span class="round-indicator" id="round-ind">Round 1</span>
+    <button class="btn" onclick="prevRound()">◀</button>
+    <button class="btn primary" onclick="nextRound()">Next ▶</button>
+    <span class="spacer"></span>
+    <button class="btn danger" onclick="confirmClear()">Clear All</button>
+  </div>
+
+  <div class="grid-container">
+    <div class="grid-left">
+      <div class="grid-left-head">
+        <div class="head-cell head-init">Init</div>
+        <div class="head-cell head-ac">AC</div>
+        <div class="head-cell head-info">Combatant Info</div>
+      </div>
+      <div class="grid-left-body" id="left-body"></div>
+    </div>
+    <div class="grid-right">
+      <div class="grid-right-head" id="right-head"></div>
+      <div class="grid-right-body" id="right-body"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>Clear All Data?</h3>
+    <p>This removes all combatants, rounds, and header info. Cannot be undone.</p>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn danger" onclick="doClear()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='dnd2024-combat-log';
+let state=loadState();
+
+function defaultState(){return{encounter:'',player:'',session:'',currentRound:1,numRounds:6,
+  legendaryRes:[false,false,false,false,false],lairInit:'',combatants:defaultCombatants(),lair:{},legendary:{}};}
+function defaultCombatants(){const a=[];for(let i=0;i<8;i++)a.push(newCombatant());return a;}
+function newCombatant(){return{id:crypto.randomUUID(),init:'',ac:'',name:'',hp:'',maxHp:'',thp:'',spd:'',conc:'',
+  deathS:[false,false,false],deathF:[false,false,false],inspiration:false,rounds:{}};}
+function getRound(c,r){if(!c.rounds[r])c.rounds[r]={action:'',bonus:'',reaction:'',freeLabel:'',freeDesc:''};return c.rounds[r];}
+function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){const s=JSON.parse(raw);
+  if(s.combatants)s.combatants.forEach(c=>{if(!c.id)c.id=crypto.randomUUID();});return s;}}catch(e){}return defaultState();}
+function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
+let saveTimer=null;
+function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveState,300);}
+
+// Scroll sync
+function setupScrollSync(){
+  const rb=document.getElementById('right-body');
+  const lb=document.getElementById('left-body');
+  const rh=document.getElementById('right-head');
+  rb.addEventListener('scroll',()=>{lb.scrollTop=rb.scrollTop;rh.scrollLeft=rb.scrollLeft;},{passive:true});
+}
+
+function render(){
+  renderHeader();renderLR();renderRoundHeaders();renderRows();updateRoundIndicator();
+  requestAnimationFrame(syncRowHeights);
+}
+
+function renderHeader(){
+  document.getElementById('h-encounter').value=state.encounter;
+  document.getElementById('h-player').value=state.player;
+  document.getElementById('h-session').value=state.session;
+}
+function renderLR(){
+  const el=document.getElementById('lr-checks');el.innerHTML='';
+  for(let i=0;i<5;i++){const cb=document.createElement('input');cb.type='checkbox';cb.className='chk';
+    cb.checked=state.legendaryRes[i];cb.style.cssText='width:16px;height:16px;';
+    cb.addEventListener('change',()=>{state.legendaryRes[i]=cb.checked;queueSave();});el.appendChild(cb);}
+}
+function renderRoundHeaders(){
+  const rh=document.getElementById('right-head');
+  const inner=document.createElement('div');inner.className='round-head-inner';
+  for(let r=1;r<=state.numRounds;r++){
+    const d=document.createElement('div');d.className='head-cell head-round';
+    const span=document.createElement('span');span.className='rn'+(r===state.currentRound?' active':'');
+    span.textContent=r;
+    span.addEventListener('click',()=>{state.currentRound=r;updateRoundIndicator();renderRoundHeaders();queueSave();});
+    d.appendChild(span);inner.appendChild(d);
+  }
+  rh.innerHTML='';rh.appendChild(inner);
+}
+
+function renderRows(){
+  const lb=document.getElementById('left-body');
+  const rb=document.getElementById('right-body');
+  lb.innerHTML='';rb.innerHTML='';
+
+  // LAIR ROW
+  const lairL=document.createElement('div');lairL.className='row-left lair';
+  const liCell=document.createElement('div');liCell.className='cell-init';
+  const liIn=document.createElement('input');liIn.type='number';liIn.className='num-input';
+  liIn.placeholder='—';liIn.style.height='28px';liIn.value=state.lairInit||'';
+  liIn.addEventListener('input',()=>{state.lairInit=liIn.value;queueSave();});
+  liCell.appendChild(liIn);lairL.appendChild(liCell);
+  const laCell=document.createElement('div');laCell.className='cell-ac';lairL.appendChild(laCell);
+  const lInfo=document.createElement('div');lInfo.className='lair-left';
+  lInfo.innerHTML='<span class="lair-label">Lair</span><span style="flex:1"></span><span class="lair-label">Legendary Actions</span>';
+  lairL.appendChild(lInfo);lb.appendChild(lairL);
+
+  const lairR=document.createElement('div');lairR.className='row-right lair';
+  const lairInner=document.createElement('div');lairInner.className='rounds-inner';
+  for(let r=1;r<=state.numRounds;r++){
+    const cell=document.createElement('div');cell.className='lair-cell';
+    if(!state.lair[r])state.lair[r]=false;
+    const lCb=mkChk('',state.lair[r],v=>{state.lair[r]=v;queueSave();});cell.appendChild(lCb);
+    const sep=document.createElement('span');sep.className='lair-sep';sep.textContent='|';cell.appendChild(sep);
+    if(!state.legendary[r])state.legendary[r]=[false,false,false];
+    for(let a=0;a<3;a++){const cb=mkChk('',state.legendary[r][a],v=>{state.legendary[r][a]=v;queueSave();});cell.appendChild(cb);}
+    lairInner.appendChild(cell);
+  }
+  lairR.appendChild(lairInner);rb.appendChild(lairR);
+
+  // COMBATANT ROWS
+  state.combatants.forEach((c,idx)=>{
+    const even=idx%2===1?' even':'';
+
+    // LEFT
+    const rowL=document.createElement('div');rowL.className='row-left'+even;rowL.dataset.row=c.id;
+
+    const initCell=document.createElement('div');initCell.className='cell-init';
+    const initIn=document.createElement('input');initIn.type='number';initIn.className='num-input';
+    initIn.placeholder='—';initIn.value=c.init;
+    initIn.addEventListener('input',()=>{c.init=initIn.value;queueSave();});
+    initCell.appendChild(initIn);rowL.appendChild(initCell);
+
+    const acCell=document.createElement('div');acCell.className='cell-ac';
+    const acIn=document.createElement('input');acIn.type='number';acIn.className='num-input';
+    acIn.placeholder='—';acIn.value=c.ac;
+    acIn.addEventListener('input',()=>{c.ac=acIn.value;queueSave();});
+    acCell.appendChild(acIn);rowL.appendChild(acCell);
+
+    const info=document.createElement('div');info.className='cell-info';
+    const nameIn=document.createElement('input');nameIn.className='name-input';
+    nameIn.placeholder='Combatant name…';nameIn.value=c.name;
+    nameIn.addEventListener('input',()=>{c.name=nameIn.value;queueSave();});
+    info.appendChild(nameIn);
+
+    const hpR=document.createElement('div');hpR.className='info-row';
+    hpR.appendChild(mkLbl('HP'));
+    hpR.appendChild(mkInput('w-sm',c.hp,v=>{c.hp=v;queueSave();}));
+    hpR.appendChild(mkSlash());
+    hpR.appendChild(mkInput('w-sm',c.maxHp,v=>{c.maxHp=v;queueSave();}));
+    const tL=mkLbl('THP');tL.style.marginLeft='4px';hpR.appendChild(tL);
+    hpR.appendChild(mkInput('w-sm',c.thp,v=>{c.thp=v;queueSave();}));
+    const sL=mkLbl('SPD');sL.style.marginLeft='4px';hpR.appendChild(sL);
+    hpR.appendChild(mkInput('w-sm',c.spd,v=>{c.spd=v;queueSave();}));
+    info.appendChild(hpR);
+
+    const concR=document.createElement('div');concR.className='info-row';
+    concR.appendChild(mkLbl('Conc'));
+    const concIn=mkInput('w-lg',c.conc,v=>{c.conc=v;queueSave();});concIn.placeholder='—';
+    concR.appendChild(concIn);info.appendChild(concR);
+
+    const dR=document.createElement('div');dR.className='info-row';
+    dR.appendChild(mkLbl('Death'));
+    const dg=document.createElement('span');dg.className='death-group';
+    for(let s=0;s<3;s++){const cb=mkChk('round success',c.deathS[s],v=>{c.deathS[s]=v;queueSave();});
+      cb.style.cssText='width:16px;height:16px;';dg.appendChild(cb);}
+    dg.appendChild(mkDeathSep());
+    for(let f=0;f<3;f++){const cb=mkChk('round fail',c.deathF[f],v=>{c.deathF[f]=v;queueSave();});
+      cb.style.cssText='width:16px;height:16px;';dg.appendChild(cb);}
+    dR.appendChild(dg);
+    const iW=document.createElement('span');iW.style.cssText='margin-left:auto;display:flex;align-items:center;gap:3px;';
+    const iL=mkLbl('INSP');iL.style.color='var(--fg4)';iW.appendChild(iL);
+    const iCb=mkChk('',c.inspiration,v=>{c.inspiration=v;queueSave();});iCb.style.cssText='width:16px;height:16px;';
+    iW.appendChild(iCb);dR.appendChild(iW);info.appendChild(dR);
+
+    const del=document.createElement('button');del.className='row-delete';del.textContent='×';
+    del.addEventListener('click',e=>{e.stopPropagation();removeCombatant(c.id);});info.appendChild(del);
+
+    rowL.appendChild(info);lb.appendChild(rowL);
+
+    // RIGHT
+    const rowR=document.createElement('div');rowR.className='row-right'+even;rowR.dataset.row=c.id;
+    const ri=document.createElement('div');ri.className='rounds-inner';
+    for(let r=1;r<=state.numRounds;r++){
+      const rd=getRound(c,r);
+      const cell=document.createElement('div');cell.className='cell-round';
+      [['a','action','Action…'],['b','bonus','Bonus…'],['r','reaction','Reaction…']].forEach(([tag,key,ph])=>{
+        const line=document.createElement('div');line.className='action-line';
+        const tEl=document.createElement('span');tEl.className='action-tag '+tag;tEl.textContent=tag.toUpperCase();
+        const inp=document.createElement('input');inp.className='action-input';inp.placeholder=ph;inp.value=rd[key];
+        inp.addEventListener('input',()=>{rd[key]=inp.value;queueSave();});
+        line.appendChild(tEl);line.appendChild(inp);cell.appendChild(line);
+      });
+      const fl=document.createElement('div');fl.className='free-line';
+      const fLbl=document.createElement('input');fLbl.className='free-label';fLbl.placeholder='···';fLbl.value=rd.freeLabel;
+      fLbl.addEventListener('input',()=>{rd.freeLabel=fLbl.value;queueSave();});
+      const fDesc=document.createElement('input');fDesc.className='free-desc';fDesc.value=rd.freeDesc;
+      fDesc.addEventListener('input',()=>{rd.freeDesc=fDesc.value;queueSave();});
+      fl.appendChild(fLbl);fl.appendChild(fDesc);cell.appendChild(fl);
+      ri.appendChild(cell);
+    }
+    rowR.appendChild(ri);rb.appendChild(rowR);
+  });
+}
+
+function mkLbl(t){const s=document.createElement('span');s.className='lbl';s.textContent=t;return s;}
+function mkSlash(){const s=document.createElement('span');s.className='slash';s.textContent='/';return s;}
+function mkDeathSep(){const s=document.createElement('span');s.className='death-sep';s.textContent='/';return s;}
+function mkInput(cls,val,fn){const i=document.createElement('input');i.className='info-input '+cls;i.value=val;
+  i.addEventListener('input',()=>fn(i.value));return i;}
+function mkChk(extra,checked,fn){const c=document.createElement('input');c.type='checkbox';
+  c.className='chk'+(extra?' '+extra:'');c.checked=checked;
+  c.addEventListener('change',()=>fn(c.checked));return c;}
+
+function syncRowHeights(){
+  const lb=document.getElementById('left-body');
+  const rb=document.getElementById('right-body');
+  const L=lb.children;const R=rb.children;
+  for(let i=0;i<L.length&&i<R.length;i++){
+    L[i].style.height='auto';R[i].style.height='auto';
+    const h=Math.max(L[i].offsetHeight,R[i].offsetHeight);
+    L[i].style.height=h+'px';R[i].style.height=h+'px';
+  }
+}
+
+function updateRoundIndicator(){document.getElementById('round-ind').textContent='Round '+state.currentRound;}
+
+function addCombatant(){state.combatants.push(newCombatant());render();queueSave();
+  const rb=document.getElementById('right-body');rb.scrollTop=rb.scrollHeight;}
+function removeCombatant(id){state.combatants=state.combatants.filter(c=>c.id!==id);render();queueSave();}
+function addRound(){state.numRounds++;render();queueSave();
+  const rb=document.getElementById('right-body');rb.scrollLeft=rb.scrollWidth;}
+function sortByInit(){state.combatants.sort((a,b)=>(parseFloat(b.init)||0)-(parseFloat(a.init)||0));render();queueSave();}
+function nextRound(){
+  if(state.currentRound<state.numRounds)state.currentRound++;
+  else{state.numRounds++;state.currentRound=state.numRounds;}
+  render();queueSave();scrollToRound(state.currentRound);
+}
+function prevRound(){if(state.currentRound>1){state.currentRound--;render();queueSave();scrollToRound(state.currentRound);}}
+function scrollToRound(r){
+  const cells=document.querySelectorAll('.round-head-inner .head-round');
+  if(cells[r-1]){const rb=document.getElementById('right-body');
+    rb.scrollLeft=(r-1)*200;}
+}
+function confirmClear(){document.getElementById('modal-overlay').classList.add('show');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+function doClear(){closeModal();state=defaultState();saveState();render();}
+
+document.getElementById('h-encounter').addEventListener('input',e=>{state.encounter=e.target.value;queueSave();});
+document.getElementById('h-player').addEventListener('input',e=>{state.player=e.target.value;queueSave();});
+document.getElementById('h-session').addEventListener('input',e=>{state.session=e.target.value;queueSave();});
+
+setupScrollSync();
+render();
+window.addEventListener('resize',()=>requestAnimationFrame(syncRowHeights));
+
+// PWA: register service worker for offline use
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+</script>
+</body>
+</html>

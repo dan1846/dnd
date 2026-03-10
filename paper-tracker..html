@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Combat Log — D&D 2024</title>
+<style>
+  @page {
+    size: letter landscape;
+    margin: 0.25in;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --ink: #111;
+    --mid: #555;
+    --light: #999;
+    --rule: #b0b0b0;
+    --rule-h: #333;
+    --alt: #f2f2f2;
+  }
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 8pt;
+    color: var(--ink);
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+	margin: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  .hdr {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    border-bottom: 2.5px solid var(--ink);
+    padding-bottom: 3px;
+    margin-bottom: 2px;
+  }
+  .hdr-title {
+    font-family: 'Arial Black', Helvetica, sans-serif;
+    font-size: 11pt;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .hdr-ed {
+    font-size: 6.5pt;
+    color: var(--light);
+    font-family: Arial, sans-serif;
+    margin-left: -3px;
+  }
+  .hdr-f {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .hdr-f.grow { flex: 1; }
+  .lbl {
+    font-family: Arial, sans-serif;
+    font-size: 6pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mid);
+    white-space: nowrap;
+  }
+  .blk { border-bottom: 1px solid var(--rule); height: 12px; }
+  .blk-grow { flex: 1; }
+  .blk-w80 { width: 70px; }
+
+  .lr-box {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    padding: 1px 5px;
+    white-space: nowrap;
+  }
+
+  /* Checkboxes */
+  .bx { display: inline-block; width: 8px; height: 8px; border: 1.2px solid var(--ink); border-radius: 1px; vertical-align: middle; flex-shrink: 0; }
+  .bx-r { border-radius: 50%; }
+
+  /* ── LEGEND + CONDITION KEY ── */
+  .legend-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;	
+    gap: 6px;
+    padding: 1px 0;
+    margin-bottom: 1px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cond-ref {
+    font-family: Arial, sans-serif;
+    font-size: 5pt;
+    color: var(--mid);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1; }
+  col.c-init { width: 2.8%; }
+  col.c-ac   { width: 2.6%; }
+  col.c-info { width: 14.6%; }
+  col.c-rnd  { width: 13.33%; }
+
+  thead th {
+    font-family: Arial, sans-serif;
+    font-size: 5.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mid);
+    border-bottom: 2px solid var(--rule-h);
+    padding: 1px 2px 2px;
+    text-align: center;
+    vertical-align: bottom;
+  }
+  thead th.al { text-align: left; }
+
+  .rn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    font-family: 'Courier New', monospace;
+    font-size: 7.5pt;
+    font-weight: 700;
+  }
+
+  /* ── COMBATANT ROW ── */
+  tr.cr td { border-bottom: 1px solid var(--rule); vertical-align: top; padding: 0; }
+  tr.cr:nth-child(even) td { background: var(--alt); }
+
+  td.ci {
+    text-align: center;
+    padding: 2px 1px 0;
+    border-right: 1px solid var(--rule);
+  }
+  .ci-b { display: block; width: 20px; margin: 0 auto; border-bottom: 1px solid var(--rule); height: 15px; }
+
+  td.ca {
+    text-align: center;
+    padding: 2px 1px 0;
+    border-right: 1px solid var(--rule);
+  }
+  .ca-b { display: block; width: 18px; margin: 0 auto; border-bottom: 1px solid var(--rule); height: 15px; }
+
+  td.cn {
+    padding: 1px 3px 0;
+    border-right: 1.5px solid var(--rule-h);
+    line-height: 1;
+  }
+  .nm { border-bottom: 1px solid var(--rule); height: 14px; width: 100%; }
+  .ir { display: flex; align-items: center; gap: 2px; height: 13px; }
+  .ir .lbl { font-size: 5pt; }
+  .ir-b { flex: 1; border-bottom: 1px solid var(--rule); height: 12px; }
+  .ir-bs { width: 22px; border-bottom: 1px solid var(--rule); height: 12px; flex-shrink: 0; }
+  .ir-bm { width: 16px; border-bottom: 1px solid var(--rule); height: 12px; flex-shrink: 0; }
+  .slash { font-size: 7pt; color: var(--mid); }
+  .ds { display: flex; align-items: center; gap: 1px; }
+  .ds .sep { font-size: 5pt; color: var(--light); margin: 0 1px; }
+
+  /* ── ROUND CELL ── */
+  td.rc {
+    border-left: 1px solid var(--rule);
+    padding: 1.5px 2px 1px;
+    vertical-align: top;
+  }
+
+  /* Tagged action lines: A/B/R label + dashed write line */
+  .tl {
+    display: flex;
+    align-items: baseline;
+    height: 12px;
+  }
+  .tl .tag {
+    font-family: Arial, sans-serif;
+    font-size: 5.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--mid);
+    width: 8px;
+    flex-shrink: 0;
+    line-height: 12px;
+  }
+  .tl .tl-line {
+    flex: 1;
+    border-bottom: 1px dashed #c0c0c0;
+    height: 12px;
+  }
+
+  /* Free lines with 3-char label prefix blank + description blank */
+  .fl {
+    display: flex;
+    align-items: baseline;
+    height: 12px;
+    gap: 2px;
+  }
+  .fl .fl-short {
+    width: 18px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--rule);
+    height: 12px;
+  }
+  .fl .fl-long {
+    flex: 1;
+    border-bottom: 1px dashed #c0c0c0;
+    height: 12px;
+  }
+
+  /* ── SPECIAL ROW ── */
+  .sl { font-family: Arial, sans-serif; font-size: 5.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); text-align: right; }
+
+  @media print {
+    body { background: none; }
+    .page { width: auto; height: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <span class="hdr-title">Combat Log</span>
+	    <div class="hdr-f grow">
+      <span class="lbl">Player</span>
+      <div class="blk blk-grow"></div>
+    </div>
+    <div class="hdr-f grow">
+      <span class="lbl">Encounter</span>
+      <div class="blk blk-grow"></div>
+    </div>
+    <div class="hdr-f">
+      <span class="lbl">Session</span>
+      <div class="blk blk-w80"></div>
+    </div>
+    <div class="hdr-f">
+      <span class="lbl" style="font-size:5.5pt;">Legendary Resistances</span>
+      <span class="bx"></span><span class="bx"></span><span class="bx"></span><span class="bx"></span><span class="bx"></span>
+    </div>
+  </div>
+
+<div class="legend-bar">
+    <span class="cond-ref">
+      A=Action · B=Bonus · R=Reaction
+    </span>
+    <span class="cond-ref" style="text-align:right;">
+      BLI Blinded · CHM Charmed · DEF Deafened · EXH Exhaustion · FRI Frightened · GRP Grappled · INC Incapacitated · INV Invisible · PAR Paralyzed · PET Petrified · POI Poisoned · PRO Prone · RES Restrained · STN Stunned · UNC Unconscious
+    </span>
+</div>
+
+  <table>
+    <colgroup>
+      <col class="c-init"><col class="c-ac"><col class="c-info">
+      <col class="c-rnd"><col class="c-rnd"><col class="c-rnd"><col class="c-rnd">
+      <col class="c-rnd"><col class="c-rnd">
+    </colgroup>
+    <thead><tr>
+      <th>Init</th><th>AC</th><th class="al">Combatant Info</th>
+      <th><span class="rn">1</span></th><th><span class="rn">2</span></th><th><span class="rn">3</span></th><th><span class="rn">4</span></th>
+      <th><span class="rn">5</span></th><th><span class="rn">6</span></th>
+    </tr></thead>
+    <tbody id="grid">
+
+      <tr class="sp" id="leg-row">
+        <td style="border-bottom:1.5px solid var(--rule-h);padding:1px 1px;vertical-align:middle;background:var(--alt);text-align:center;"><span class="ci-b" style="height:11px;"></span></td>
+		<td colspan="2" style="border-bottom:1.5px solid var(--rule-h);padding:1px 3px;vertical-align:middle;background:var(--alt);text-align:left;">
+		  <div style="display:flex;justify-content:space-between;align-items:center;">
+			<span class="sl">Lair</span>
+			<span class="sl">Legendary Actions</span>
+		  </div>
+		</td>
+        <td style="border-bottom:1.5px solid var(--rule-h);border-left:1px solid var(--rule);padding:1px 2px;vertical-align:middle;background:var(--alt);"><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><span class="bx"></span><span style="color:var(--rule);margin:0 1px;">|</span><span class="bx"></span><span class="bx"></span><span class="bx"></span></div></td>
+        <td style="border-bottom:1.5px solid var(--rule-h);border-left:1px solid var(--rule);padding:1px 2px;vertical-align:middle;background:var(--alt);"><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><span class="bx"></span><span style="color:var(--rule);margin:0 1px;">|</span><span class="bx"></span><span class="bx"></span><span class="bx"></span></div></td>
+        <td style="border-bottom:1.5px solid var(--rule-h);border-left:1px solid var(--rule);padding:1px 2px;vertical-align:middle;background:var(--alt);"><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><span class="bx"></span><span style="color:var(--rule);margin:0 1px;">|</span><span class="bx"></span><span class="bx"></span><span class="bx"></span></div></td>
+        <td style="border-bottom:1.5px solid var(--rule-h);border-left:1px solid var(--rule);padding:1px 2px;vertical-align:middle;background:var(--alt);"><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><span class="bx"></span><span style="color:var(--rule);margin:0 1px;">|</span><span class="bx"></span><span class="bx"></span><span class="bx"></span></div></td>
+        <td style="border-bottom:1.5px solid var(--rule-h);border-left:1px solid var(--rule);padding:1px 2px;vertical-align:middle;background:var(--alt);"><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><span class="bx"></span><span style="color:var(--rule);margin:0 1px;">|</span><span class="bx"></span><span class="bx"></span><span class="bx"></span></div></td>
+        <td style="border-bottom:1.5px solid var(--rule-h);border-left:1px solid var(--rule);padding:1px 2px;vertical-align:middle;background:var(--alt);"><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><span class="bx"></span><span style="color:var(--rule);margin:0 1px;">|</span><span class="bx"></span><span class="bx"></span><span class="bx"></span></div></td>
+      </tr>
+
+      <tr class="cr" id="tpl">
+        <td class="ci"><span class="ci-b"></span></td>
+        <td class="ca"><span class="ca-b"></span></td>
+        <td class="cn">
+          <div class="nm"></div>
+          <div class="ir">
+            <span class="lbl">HP</span>
+            <span class="ir-bs"></span>
+            <span class="slash">/</span>
+            <span class="ir-bs"></span>
+            <span class="lbl" style="margin-left:2px;">THP</span>
+            <span class="ir-bm"></span>
+            <span class="lbl" style="margin-left:2px;">SPD</span>
+            <span class="ir-bm"></span>
+          </div>
+          <div class="ir">
+            <span class="lbl">Conc</span>
+            <span class="ir-b"></span>
+			<span class="sep">  </span>
+          </div>
+          <div class="ir" style="height:13px;">
+            <span class="lbl">Death</span>
+            <div class="ds">
+			  <span class="sep">  </span>
+              <span class="bx bx-r" style="width:6px;height:6px;"></span>
+              <span class="bx bx-r" style="width:6px;height:6px;"></span>
+              <span class="bx bx-r" style="width:6px;height:6px;"></span>
+              <span class="sep">/</span>
+              <span class="bx bx-r" style="width:6px;height:6px;border-style:dashed;"></span>
+              <span class="bx bx-r" style="width:6px;height:6px;border-style:dashed;"></span>
+              <span class="bx bx-r" style="width:6px;height:6px;border-style:dashed;"></span>
+            </div>
+            <span class="lbl" style="margin-left:auto;color:var(--light);">INSP</span>
+            <span class="bx" style="width:6px;height:6px;"></span>
+			<span class="sep">  </span>
+          </div>
+        </td>
+        <td class="rc"><div class="tl"><span class="tag">A</span><span class="tl-line"></span></div><div class="tl"><span class="tag">B</span><span class="tl-line"></span></div><div class="tl"><span class="tag">R</span><span class="tl-line"></span></div><div class="fl"><span class="fl-short"></span><span class="fl-long"></span></div></td>
+        <td class="rc"><div class="tl"><span class="tag">A</span><span class="tl-line"></span></div><div class="tl"><span class="tag">B</span><span class="tl-line"></span></div><div class="tl"><span class="tag">R</span><span class="tl-line"></span></div><div class="fl"><span class="fl-short"></span><span class="fl-long"></span></div></td>
+        <td class="rc"><div class="tl"><span class="tag">A</span><span class="tl-line"></span></div><div class="tl"><span class="tag">B</span><span class="tl-line"></span></div><div class="tl"><span class="tag">R</span><span class="tl-line"></span></div><div class="fl"><span class="fl-short"></span><span class="fl-long"></span></div></td>
+        <td class="rc"><div class="tl"><span class="tag">A</span><span class="tl-line"></span></div><div class="tl"><span class="tag">B</span><span class="tl-line"></span></div><div class="tl"><span class="tag">R</span><span class="tl-line"></span></div><div class="fl"><span class="fl-short"></span><span class="fl-long"></span></div></td>
+        <td class="rc"><div class="tl"><span class="tag">A</span><span class="tl-line"></span></div><div class="tl"><span class="tag">B</span><span class="tl-line"></span></div><div class="tl"><span class="tag">R</span><span class="tl-line"></span></div><div class="fl"><span class="fl-short"></span><span class="fl-long"></span></div></td>
+        <td class="rc"><div class="tl"><span class="tag">A</span><span class="tl-line"></span></div><div class="tl"><span class="tag">B</span><span class="tl-line"></span></div><div class="tl"><span class="tag">R</span><span class="tl-line"></span></div><div class="fl"><span class="fl-short"></span><span class="fl-long"></span></div></td>
+      </tr>
+
+    </tbody>
+  </table>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tbody = document.getElementById('grid');
+  const tpl = document.getElementById('tpl');
+  tpl.removeAttribute('id');
+  for (let i = 1; i < 12; i++) {
+    tbody.appendChild(tpl.cloneNode(true));
+  }
+});
+</script>
+</body>
+</html>

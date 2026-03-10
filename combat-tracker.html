@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Combat Log">
@@ -69,6 +69,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .btn.primary:active{background:rgba(124,154,255,0.25);}
 .btn.danger{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red);}
 .btn.danger:active{background:rgba(248,113,113,0.25);}
+.btn.export{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+.btn.export:active{background:rgba(74,222,128,0.25);}
 .toolbar .spacer{flex:1;}
 .round-indicator{font-family:'Avenir Next',sans-serif;font-size:12px;font-weight:700;
   color:var(--accent);letter-spacing:0.04em;}
@@ -80,7 +82,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
   display:flex;flex-direction:column;border-right:2px solid var(--border2);background:var(--bg);}
 .grid-left-head{height:var(--head-h);min-height:var(--head-h);display:flex;align-items:center;
   background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;}
-.grid-left-body{flex:1;overflow:hidden;}
+.grid-left-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+/* Hide left scrollbar — scroll driven by sync or direct touch */
+.grid-left-body::-webkit-scrollbar{display:none;}
+.grid-left-body{-ms-overflow-style:none;scrollbar-width:none;}
 
 .grid-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .grid-right-head{height:var(--head-h);min-height:var(--head-h);
@@ -122,7 +127,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .num-input:focus{background:var(--bg4);}
 .num-input::placeholder{color:var(--fg4);}
 
-.name-input{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
+.name-input{width:calc(100% - 28px);background:transparent;border:none;border-bottom:1px solid var(--border);
   color:var(--fg);font-family:inherit;font-size:13px;font-weight:700;padding:2px 0;
   outline:none;height:26px;}
 .name-input:focus{border-bottom-color:var(--accent);}
@@ -148,11 +153,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .death-group{display:flex;align-items:center;gap:2px;}
 .death-sep{color:var(--fg4);font-size:10px;margin:0 2px;}
 
+/* Delete: always subtly visible, more prominent on hover/touch */
 .row-delete{position:absolute;right:2px;top:2px;width:22px;height:22px;border:none;
   background:transparent;color:var(--fg4);font-size:16px;cursor:pointer;border-radius:50%;
-  display:none;align-items:center;justify-content:center;}
-.cell-info:hover .row-delete{display:flex;}
-.row-delete:active{background:var(--red-dim);color:var(--red);}
+  display:flex;align-items:center;justify-content:center;opacity:0.35;
+  transition:opacity 0.15s,background 0.15s,color 0.15s;}
+.cell-info:hover .row-delete{opacity:1;}
+.row-delete:active{background:var(--red-dim);color:var(--red);opacity:1;}
+@media (pointer:coarse){.row-delete{opacity:0.5;}}
 
 /* Round cell */
 .cell-round{width:var(--round-w);min-width:var(--round-w);flex-shrink:0;
@@ -289,16 +297,16 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 
   <div class="toolbar">
-    <button class="btn primary" onclick="addCombatant()">+ Combatant</button>
-    <button class="btn" onclick="addRound()">+ Round</button>
-    <button class="btn" onclick="sortByInit()">Sort Init ↓</button>
+    <button class="btn primary" id="btn-add-combatant">+ Combatant</button>
+    <button class="btn" id="btn-add-round">+ Round</button>
+    <button class="btn" id="btn-sort-init">Sort Init ↓</button>
     <span class="spacer"></span>
     <span class="round-indicator" id="round-ind">Round 1</span>
-    <button class="btn" onclick="prevRound()">◀</button>
-    <button class="btn primary" onclick="nextRound()">Next ▶</button>
+    <button class="btn" id="btn-prev-round">◀</button>
+    <button class="btn primary" id="btn-next-round">Next ▶</button>
     <span class="spacer"></span>
-    <button class="btn danger" onclick="confirmClear()">Clear All</button>
-    <button class="btn" onclick="exportPDF()" style="border-color:var(--green);color:var(--green);background:var(--green-dim);">Save PDF</button>
+    <button class="btn danger" id="btn-clear-all">Clear All</button>
+    <button class="btn export" id="btn-print-export">Save PDF</button>
   </div>
 
   <div class="grid-container">
@@ -322,13 +330,13 @@ input[type=number]{-moz-appearance:textfield;}
     <h3>Clear All Data?</h3>
     <p>This removes all combatants, rounds, and header info. Cannot be undone.</p>
     <div class="modal-btns">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn danger" onclick="doClear()">Clear</button>
+      <button class="btn" id="btn-modal-cancel">Cancel</button>
+      <button class="btn danger" id="btn-modal-confirm">Clear</button>
     </div>
   </div>
 </div>
 
-<!-- PRINT VIEW: populated by exportPDF(), visible only in @media print -->
+<!-- PRINT VIEW: populated by printExport(), visible only in @media print -->
 <div id="print-view"></div>
 
 <script>
@@ -346,31 +354,54 @@ function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){con
 function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
 let saveTimer=null;
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveState,300);}
+function flushSave(){clearTimeout(saveTimer);saveState();}
 
-// Scroll sync
+// ── FOCUS PRESERVATION ──
+function getActiveFieldId(){
+  const el=document.activeElement;
+  if(!el||!el.matches('input'))return null;
+  return el.dataset.fieldId||null;
+}
+function restoreFocus(fieldId){
+  if(!fieldId)return;
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('[data-field-id="'+fieldId+'"]');
+    if(el){el.focus();
+      if(typeof el.selectionStart==='number')el.selectionStart=el.selectionEnd=el.value.length;}
+  });
+}
+
+// ── SCROLL SYNC (bidirectional for iPad touch on either panel) ──
 function setupScrollSync(){
   const rb=document.getElementById('right-body');
   const lb=document.getElementById('left-body');
   const rh=document.getElementById('right-head');
-  rb.addEventListener('scroll',()=>{lb.scrollTop=rb.scrollTop;rh.scrollLeft=rb.scrollLeft;},{passive:true});
+  let syncing=false;
 
-  // Prevent iOS from snapping scroll to bottom when focusing inputs
+  rb.addEventListener('scroll',()=>{
+    if(syncing)return;syncing=true;
+    lb.scrollTop=rb.scrollTop;rh.scrollLeft=rb.scrollLeft;
+    syncing=false;
+  },{passive:true});
+
+  lb.addEventListener('scroll',()=>{
+    if(syncing)return;syncing=true;
+    rb.scrollTop=lb.scrollTop;
+    syncing=false;
+  },{passive:true});
+
+  // Prevent iOS from snapping scroll when focusing inputs
   document.addEventListener('focus',e=>{
     if(!e.target.matches||!e.target.matches('input'))return;
-    const rbTop=rb.scrollTop;
-    const rbLeft=rb.scrollLeft;
-    const lbTop=lb.scrollTop;
-    requestAnimationFrame(()=>{
-      rb.scrollTop=rbTop;
-      rb.scrollLeft=rbLeft;
-      lb.scrollTop=lbTop;
-    });
+    const rbTop=rb.scrollTop;const rbLeft=rb.scrollLeft;const lbTop=lb.scrollTop;
+    requestAnimationFrame(()=>{rb.scrollTop=rbTop;rb.scrollLeft=rbLeft;lb.scrollTop=lbTop;});
   },true);
 }
 
 function render(){
+  const focusId=getActiveFieldId();
   renderHeader();renderLR();renderRoundHeaders();renderRows();updateRoundIndicator();
-  requestAnimationFrame(syncRowHeights);
+  requestAnimationFrame(()=>{syncRowHeights();restoreFocus(focusId);});
 }
 
 function renderHeader(){
@@ -407,6 +438,7 @@ function renderRows(){
   const liCell=document.createElement('div');liCell.className='cell-init';
   const liIn=document.createElement('input');liIn.type='number';liIn.className='num-input';
   liIn.placeholder='—';liIn.style.height='28px';liIn.value=state.lairInit||'';
+  liIn.dataset.fieldId='lair-init';
   liIn.addEventListener('input',()=>{state.lairInit=liIn.value;queueSave();});
   liCell.appendChild(liIn);lairL.appendChild(liCell);
   const laCell=document.createElement('div');laCell.className='cell-ac';lairL.appendChild(laCell);
@@ -437,35 +469,45 @@ function renderRows(){
     const initCell=document.createElement('div');initCell.className='cell-init';
     const initIn=document.createElement('input');initIn.type='number';initIn.className='num-input';
     initIn.placeholder='—';initIn.value=c.init;
+    initIn.dataset.fieldId='init-'+c.id;
     initIn.addEventListener('input',()=>{c.init=initIn.value;queueSave();});
     initCell.appendChild(initIn);rowL.appendChild(initCell);
 
     const acCell=document.createElement('div');acCell.className='cell-ac';
     const acIn=document.createElement('input');acIn.type='number';acIn.className='num-input';
     acIn.placeholder='—';acIn.value=c.ac;
+    acIn.dataset.fieldId='ac-'+c.id;
     acIn.addEventListener('input',()=>{c.ac=acIn.value;queueSave();});
     acCell.appendChild(acIn);rowL.appendChild(acCell);
 
     const info=document.createElement('div');info.className='cell-info';
+
+    const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:0;';
     const nameIn=document.createElement('input');nameIn.className='name-input';
     nameIn.placeholder='Combatant name…';nameIn.value=c.name;
+    nameIn.dataset.fieldId='name-'+c.id;
     nameIn.addEventListener('input',()=>{c.name=nameIn.value;queueSave();});
-    info.appendChild(nameIn);
+    nameRow.appendChild(nameIn);
+
+    const del=document.createElement('button');del.className='row-delete';del.textContent='×';
+    del.addEventListener('click',e=>{e.stopPropagation();removeCombatant(c.id);});
+    nameRow.appendChild(del);
+    info.appendChild(nameRow);
 
     const hpR=document.createElement('div');hpR.className='info-row';
     hpR.appendChild(mkLbl('HP'));
-    hpR.appendChild(mkInput('w-sm',c.hp,v=>{c.hp=v;queueSave();}));
+    hpR.appendChild(mkInput('w-sm',c.hp,v=>{c.hp=v;queueSave();},'hp-'+c.id));
     hpR.appendChild(mkSlash());
-    hpR.appendChild(mkInput('w-sm',c.maxHp,v=>{c.maxHp=v;queueSave();}));
+    hpR.appendChild(mkInput('w-sm',c.maxHp,v=>{c.maxHp=v;queueSave();},'maxhp-'+c.id));
     const tL=mkLbl('THP');tL.style.marginLeft='4px';hpR.appendChild(tL);
-    hpR.appendChild(mkInput('w-sm',c.thp,v=>{c.thp=v;queueSave();}));
+    hpR.appendChild(mkInput('w-sm',c.thp,v=>{c.thp=v;queueSave();},'thp-'+c.id));
     const sL=mkLbl('SPD');sL.style.marginLeft='4px';hpR.appendChild(sL);
-    hpR.appendChild(mkInput('w-sm',c.spd,v=>{c.spd=v;queueSave();}));
+    hpR.appendChild(mkInput('w-sm',c.spd,v=>{c.spd=v;queueSave();},'spd-'+c.id));
     info.appendChild(hpR);
 
     const concR=document.createElement('div');concR.className='info-row';
     concR.appendChild(mkLbl('Conc'));
-    const concIn=mkInput('w-lg',c.conc,v=>{c.conc=v;queueSave();});concIn.placeholder='—';
+    const concIn=mkInput('w-lg',c.conc,v=>{c.conc=v;queueSave();},'conc-'+c.id);concIn.placeholder='—';
     concR.appendChild(concIn);info.appendChild(concR);
 
     const dR=document.createElement('div');dR.className='info-row';
@@ -482,9 +524,6 @@ function renderRows(){
     const iCb=mkChk('',c.inspiration,v=>{c.inspiration=v;queueSave();});iCb.style.cssText='width:16px;height:16px;';
     iW.appendChild(iCb);dR.appendChild(iW);info.appendChild(dR);
 
-    const del=document.createElement('button');del.className='row-delete';del.textContent='×';
-    del.addEventListener('click',e=>{e.stopPropagation();removeCombatant(c.id);});info.appendChild(del);
-
     rowL.appendChild(info);lb.appendChild(rowL);
 
     // RIGHT
@@ -497,13 +536,16 @@ function renderRows(){
         const line=document.createElement('div');line.className='action-line';
         const tEl=document.createElement('span');tEl.className='action-tag '+tag;tEl.textContent=tag.toUpperCase();
         const inp=document.createElement('input');inp.className='action-input';inp.placeholder=ph;inp.value=rd[key];
+        inp.dataset.fieldId=key+'-'+c.id+'-r'+r;
         inp.addEventListener('input',()=>{rd[key]=inp.value;queueSave();});
         line.appendChild(tEl);line.appendChild(inp);cell.appendChild(line);
       });
       const fl=document.createElement('div');fl.className='free-line';
       const fLbl=document.createElement('input');fLbl.className='free-label';fLbl.placeholder='···';fLbl.value=rd.freeLabel;
+      fLbl.dataset.fieldId='flbl-'+c.id+'-r'+r;
       fLbl.addEventListener('input',()=>{rd.freeLabel=fLbl.value;queueSave();});
       const fDesc=document.createElement('input');fDesc.className='free-desc';fDesc.value=rd.freeDesc;
+      fDesc.dataset.fieldId='fdesc-'+c.id+'-r'+r;
       fDesc.addEventListener('input',()=>{rd.freeDesc=fDesc.value;queueSave();});
       fl.appendChild(fLbl);fl.appendChild(fDesc);cell.appendChild(fl);
       ri.appendChild(cell);
@@ -515,8 +557,11 @@ function renderRows(){
 function mkLbl(t){const s=document.createElement('span');s.className='lbl';s.textContent=t;return s;}
 function mkSlash(){const s=document.createElement('span');s.className='slash';s.textContent='/';return s;}
 function mkDeathSep(){const s=document.createElement('span');s.className='death-sep';s.textContent='/';return s;}
-function mkInput(cls,val,fn){const i=document.createElement('input');i.className='info-input '+cls;i.value=val;
-  i.addEventListener('input',()=>fn(i.value));return i;}
+function mkInput(cls,val,fn,fieldId){
+  const i=document.createElement('input');i.className='info-input '+cls;i.value=val;
+  if(fieldId)i.dataset.fieldId=fieldId;
+  i.addEventListener('input',()=>fn(i.value));return i;
+}
 function mkChk(extra,checked,fn){const c=document.createElement('input');c.type='checkbox';
   c.className='chk'+(extra?' '+extra:'');c.checked=checked;
   c.addEventListener('change',()=>fn(c.checked));return c;}
@@ -524,12 +569,15 @@ function mkChk(extra,checked,fn){const c=document.createElement('input');c.type=
 function syncRowHeights(){
   const lb=document.getElementById('left-body');
   const rb=document.getElementById('right-body');
-  const L=lb.children;const R=rb.children;
-  for(let i=0;i<L.length&&i<R.length;i++){
-    L[i].style.height='auto';R[i].style.height='auto';
-    const h=Math.max(L[i].offsetHeight,R[i].offsetHeight);
-    L[i].style.height=h+'px';R[i].style.height=h+'px';
-  }
+  const L=[...lb.children];const R=[...rb.children];
+  const len=Math.min(L.length,R.length);
+  // Reset (batch writes)
+  for(let i=0;i<len;i++){L[i].style.height='auto';R[i].style.height='auto';}
+  // Batch reads
+  const heights=new Array(len);
+  for(let i=0;i<len;i++){heights[i]=Math.max(L[i].offsetHeight,R[i].offsetHeight);}
+  // Batch writes
+  for(let i=0;i<len;i++){L[i].style.height=heights[i]+'px';R[i].style.height=heights[i]+'px';}
 }
 
 function updateRoundIndicator(){document.getElementById('round-ind').textContent='Round '+state.currentRound;}
@@ -548,26 +596,38 @@ function nextRound(){
 function prevRound(){if(state.currentRound>1){state.currentRound--;render();queueSave();scrollToRound(state.currentRound);}}
 function scrollToRound(r){
   const cells=document.querySelectorAll('.round-head-inner .head-round');
-  if(cells[r-1]){const rb=document.getElementById('right-body');
-    rb.scrollLeft=(r-1)*200;}
+  if(cells[r-1]){document.getElementById('right-body').scrollLeft=(r-1)*200;}
 }
 function confirmClear(){document.getElementById('modal-overlay').classList.add('show');}
 function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
 function doClear(){closeModal();state=defaultState();saveState();render();}
 
+// ── TOOLBAR EVENT BINDING ──
+document.getElementById('btn-add-combatant').addEventListener('click',addCombatant);
+document.getElementById('btn-add-round').addEventListener('click',addRound);
+document.getElementById('btn-sort-init').addEventListener('click',sortByInit);
+document.getElementById('btn-prev-round').addEventListener('click',prevRound);
+document.getElementById('btn-next-round').addEventListener('click',nextRound);
+document.getElementById('btn-clear-all').addEventListener('click',confirmClear);
+document.getElementById('btn-print-export').addEventListener('click',printExport);
+document.getElementById('btn-modal-cancel').addEventListener('click',closeModal);
+document.getElementById('btn-modal-confirm').addEventListener('click',doClear);
+
 document.getElementById('h-encounter').addEventListener('input',e=>{state.encounter=e.target.value;queueSave();});
 document.getElementById('h-player').addEventListener('input',e=>{state.player=e.target.value;queueSave();});
 document.getElementById('h-session').addEventListener('input',e=>{state.session=e.target.value;queueSave();});
 
-// ── EXPORT PDF ──
-function exportPDF(){
+// ── SAVE ON PAGE HIDE (prevents data loss on iPad app/tab switch) ──
+window.addEventListener('pagehide',flushSave);
+window.addEventListener('beforeunload',flushSave);
+
+// ── EXPORT / PRINT ──
+function printExport(){
   const pv=document.getElementById('print-view');
   const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const chk=(checked,extra)=>`<span class="p-chk${extra?' '+extra:''} ${checked?'checked':''}"></span>`;
+  const chk=(checked,extra)=>'<span class="p-chk'+(extra?' '+extra:'')+' '+(checked?'checked':'')+'"></span>';
 
-  // Determine which rounds have any data
   let maxRound=state.numRounds;
-  // Count used rounds (at least show up to currentRound)
   let usedRounds=Math.max(state.currentRound,1);
   state.combatants.forEach(c=>{
     Object.keys(c.rounds).forEach(r=>{
@@ -578,101 +638,89 @@ function exportPDF(){
   });
   usedRounds=Math.min(usedRounds,maxRound);
 
-  // Filter to combatants with any data
   const activeCombatants=state.combatants.filter(c=>
     c.name||c.init||c.ac||c.hp||c.maxHp||c.conc||
     c.deathS.some(Boolean)||c.deathF.some(Boolean)||
     Object.keys(c.rounds).some(r=>{const rd=c.rounds[r];return rd.action||rd.bonus||rd.reaction||rd.freeLabel||rd.freeDesc;})
   );
-  // If nothing filled, print all rows
   const rows=activeCombatants.length>0?activeCombatants:state.combatants;
 
-  // Calculate column widths
-  const infoW=18;// percentage
-  const initW=4;
-  const acW=4;
+  const infoW=18,initW=4,acW=4;
   const roundW=Math.floor((100-infoW-initW-acW)/usedRounds);
 
   let h='';
-  // Header
-  h+=`<div class="p-hdr">`;
-  h+=`<span class="p-title">Combat Log</span>`;
-  h+=`<div class="p-hdr-f grow"><span class="p-lbl">Encounter</span> <span class="p-val">${esc(state.encounter)}</span></div>`;
-  h+=`<div class="p-hdr-f grow"><span class="p-lbl">Player</span> <span class="p-val">${esc(state.player)}</span></div>`;
-  h+=`<div class="p-hdr-f"><span class="p-lbl">Session</span> <span class="p-val">${esc(state.session)}</span></div>`;
-  h+=`<div class="p-hdr-f"><span class="p-lbl">Leg.Res.</span> `;
+  h+='<div class="p-hdr">';
+  h+='<span class="p-title">Combat Log</span>';
+  h+='<div class="p-hdr-f grow"><span class="p-lbl">Encounter</span> <span class="p-val">'+esc(state.encounter)+'</span></div>';
+  h+='<div class="p-hdr-f grow"><span class="p-lbl">Player</span> <span class="p-val">'+esc(state.player)+'</span></div>';
+  h+='<div class="p-hdr-f"><span class="p-lbl">Session</span> <span class="p-val">'+esc(state.session)+'</span></div>';
+  h+='<div class="p-hdr-f"><span class="p-lbl">Leg.Res.</span> ';
   for(let i=0;i<5;i++)h+=chk(state.legendaryRes[i]);
-  h+=`</div></div>`;
+  h+='</div></div>';
 
-  // Legend
-  h+=`<div class="p-legend">`;
-  h+=`<span>A=Action · B=Bonus · R=Reaction</span>`;
-  h+=`<span>BLI Blinded · CHM Charmed · DEF Deafened · EXH Exhaustion · FRI Frightened · GRP Grappled · INC Incapacitated · INV Invisible · PAR Paralyzed · PET Petrified · POI Poisoned · PRO Prone · RES Restrained · STN Stunned · UNC Unconscious</span>`;
-  h+=`</div>`;
+  h+='<div class="p-legend">';
+  h+='<span>A=Action · B=Bonus · R=Reaction</span>';
+  h+='<span>BLI Blinded · CHM Charmed · DEF Deafened · EXH Exhaustion · FRI Frightened · GRP Grappled · INC Incapacitated · INV Invisible · PAR Paralyzed · PET Petrified · POI Poisoned · PRO Prone · RES Restrained · STN Stunned · UNC Unconscious</span>';
+  h+='</div>';
 
-  // Table
-  h+=`<table class="p-table"><colgroup>`;
-  h+=`<col style="width:${initW}%"><col style="width:${acW}%"><col style="width:${infoW}%">`;
-  for(let r=0;r<usedRounds;r++)h+=`<col style="width:${roundW}%">`;
-  h+=`</colgroup><thead><tr>`;
-  h+=`<th>Init</th><th>AC</th><th class="al">Combatant Info</th>`;
-  for(let r=1;r<=usedRounds;r++)h+=`<th><span class="p-rn">${r}</span></th>`;
-  h+=`</tr></thead><tbody>`;
+  h+='<table class="p-table"><colgroup>';
+  h+='<col style="width:'+initW+'%"><col style="width:'+acW+'%"><col style="width:'+infoW+'%">';
+  for(let r=0;r<usedRounds;r++)h+='<col style="width:'+roundW+'%">';
+  h+='</colgroup><thead><tr>';
+  h+='<th>Init</th><th>AC</th><th class="al">Combatant Info</th>';
+  for(let r=1;r<=usedRounds;r++)h+='<th><span class="p-rn">'+r+'</span></th>';
+  h+='</tr></thead><tbody>';
 
   // Lair row
-  h+=`<tr class="p-lair">`;
-  h+=`<td class="c-init">${esc(state.lairInit)}</td>`;
-  h+=`<td class="c-ac"></td>`;
-  h+=`<td class="c-info" style="display:flex;justify-content:space-between;"><span>LAIR</span><span>LEGENDARY ACTIONS</span></td>`;
+  h+='<tr class="p-lair">';
+  h+='<td class="c-init">'+esc(state.lairInit)+'</td>';
+  h+='<td class="c-ac"></td>';
+  h+='<td class="c-info" style="display:flex;justify-content:space-between;"><span>LAIR</span><span>LEGENDARY ACTIONS</span></td>';
   for(let r=1;r<=usedRounds;r++){
     let lc=chk(state.lair[r]||false);
     lc+=' | ';
     const leg=state.legendary[r]||[false,false,false];
     for(let a=0;a<3;a++)lc+=chk(leg[a]);
-    h+=`<td class="c-round" style="text-align:center;">${lc}</td>`;
+    h+='<td class="c-round" style="text-align:center;">'+lc+'</td>';
   }
-  h+=`</tr>`;
+  h+='</tr>';
 
-  // Combatant rows
   rows.forEach(c=>{
-    h+=`<tr>`;
-    h+=`<td class="c-init">${esc(c.init)}</td>`;
-    h+=`<td class="c-ac">${esc(c.ac)}</td>`;
+    h+='<tr>';
+    h+='<td class="c-init">'+esc(c.init)+'</td>';
+    h+='<td class="c-ac">'+esc(c.ac)+'</td>';
 
-    // Info cell
-    let info=`<div style="font-weight:700;font-size:8pt;border-bottom:1px solid #b0b0b0;padding-bottom:1px;margin-bottom:1px;">${esc(c.name)||'&nbsp;'}</div>`;
-    info+=`<div class="p-info-line"><span class="p-lbl">HP</span> ${esc(c.hp)}/${esc(c.maxHp)}`;
-    if(c.thp)info+=` <span class="p-lbl">THP</span> ${esc(c.thp)}`;
-    if(c.spd)info+=` <span class="p-lbl">SPD</span> ${esc(c.spd)}`;
-    info+=`</div>`;
-    if(c.conc)info+=`<div class="p-info-line"><span class="p-lbl">Conc</span> ${esc(c.conc)}</div>`;
+    let info='<div style="font-weight:700;font-size:8pt;border-bottom:1px solid #b0b0b0;padding-bottom:1px;margin-bottom:1px;">'+(esc(c.name)||'&nbsp;')+'</div>';
+    info+='<div class="p-info-line"><span class="p-lbl">HP</span> '+esc(c.hp)+'/'+esc(c.maxHp);
+    if(c.thp)info+=' <span class="p-lbl">THP</span> '+esc(c.thp);
+    if(c.spd)info+=' <span class="p-lbl">SPD</span> '+esc(c.spd);
+    info+='</div>';
+    if(c.conc)info+='<div class="p-info-line"><span class="p-lbl">Conc</span> '+esc(c.conc)+'</div>';
 
-    // Death saves
     const hasDs=c.deathS.some(Boolean)||c.deathF.some(Boolean);
     if(hasDs){
-      info+=`<div class="p-info-line"><span class="p-lbl">Death</span> `;
+      info+='<div class="p-info-line"><span class="p-lbl">Death</span> ';
       for(let s=0;s<3;s++)info+=chk(c.deathS[s],'round');
       info+='/';
       for(let f=0;f<3;f++)info+=chk(c.deathF[f],'round dashed');
-      info+=`</div>`;
+      info+='</div>';
     }
-    if(c.inspiration)info+=`<div class="p-info-line"><span class="p-lbl">INSP</span> ${chk(true)}</div>`;
-    h+=`<td class="c-info">${info}</td>`;
+    if(c.inspiration)info+='<div class="p-info-line"><span class="p-lbl">INSP</span> '+chk(true)+'</div>';
+    h+='<td class="c-info">'+info+'</td>';
 
-    // Round cells
     for(let r=1;r<=usedRounds;r++){
       const rd=getRound(c,r);
       let rc='';
-      if(rd.action)rc+=`<span class="p-tag">A</span> ${esc(rd.action)}\n`;
-      if(rd.bonus)rc+=`<span class="p-tag">B</span> ${esc(rd.bonus)}\n`;
-      if(rd.reaction)rc+=`<span class="p-tag">R</span> ${esc(rd.reaction)}\n`;
-      if(rd.freeLabel||rd.freeDesc)rc+=`<span class="p-tag">${esc(rd.freeLabel)}</span> ${esc(rd.freeDesc)}`;
-      h+=`<td class="c-round">${rc}</td>`;
+      if(rd.action)rc+='<span class="p-tag">A</span> '+esc(rd.action)+'\n';
+      if(rd.bonus)rc+='<span class="p-tag">B</span> '+esc(rd.bonus)+'\n';
+      if(rd.reaction)rc+='<span class="p-tag">R</span> '+esc(rd.reaction)+'\n';
+      if(rd.freeLabel||rd.freeDesc)rc+='<span class="p-tag">'+esc(rd.freeLabel)+'</span> '+esc(rd.freeDesc);
+      h+='<td class="c-round">'+rc+'</td>';
     }
-    h+=`</tr>`;
+    h+='</tr>';
   });
 
-  h+=`</tbody></table>`;
+  h+='</tbody></table>';
   pv.innerHTML=h;
   setTimeout(()=>window.print(),100);
 }

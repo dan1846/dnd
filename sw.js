@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dm-tools-v5';
-const URLS_TO_CACHE = ['./', './index.html', './combat-tracker.html', './manifest.json'];
+const CACHE_NAME = 'dm-tools-v6';
+const URLS_TO_CACHE = ['./', './index.html', './combat-tracker.html', './paper-tracker.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(URLS_TO_CACHE)));
@@ -14,11 +14,24 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
-      const clone = resp.clone();
-      caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-      return resp;
-    }))
-  );
+  const url = new URL(e.request.url);
+  // Network-first for HTML files (ensures deploys propagate fast)
+  if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request).then(resp => {
+        const clone = resp.clone();
+        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        return resp;
+      }).catch(() => caches.match(e.request))
+    );
+  } else {
+    // Cache-first for other assets (manifest, icons, etc.)
+    e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+        const clone = resp.clone();
+        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        return resp;
+      }))
+    );
+  }
 });

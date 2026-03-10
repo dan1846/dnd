@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DM Tools">
 <link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="theme-color" content="#141517">
 <title>DM Tools — D&D 2024</title>
 <style>
@@ -67,7 +68,7 @@ a.tool:hover .tool-arrow,a.tool:active .tool-arrow{color:var(--accent);transform
       <span class="tool-arrow">→</span>
     </a>
     <a class="tool" href="./paper-tracker.html">
-      <div class="tool-icon">⚔</div>
+      <div class="tool-icon">📋</div>
       <div class="tool-text">
         <div class="tool-name">Printable Combat Tracker</div>
         <div class="tool-desc">Print version: Initiative, rounds, actions, HP, conditions, death saves. Exports to PDF.</div>
@@ -77,5 +78,8 @@ a.tool:hover .tool-arrow,a.tool:active .tool-arrow{color:var(--accent);transform
     <!-- add future tools here as <a class="tool"> blocks -->
   </div>
 </div>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+</script>
 </body>
 </html>

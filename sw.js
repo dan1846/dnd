@@ -1,5 +1,5 @@
-const CACHE_NAME = 'combat-log-v4';
-const URLS_TO_CACHE = ['./', './index.html', './manifest.json'];
+const CACHE_NAME = 'dm-tools-v5';
+const URLS_TO_CACHE = ['./', './index.html', './combat-tracker.html', './manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(URLS_TO_CACHE)));

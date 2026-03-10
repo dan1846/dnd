@@ -214,9 +214,10 @@ input[type=number]{-moz-appearance:textfield;}
 @media print{
   @page{size:letter landscape;margin:0.25in;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  body{background:#fff!important;color:#111!important;font-size:8pt!important;overflow:visible!important;height:auto!important;}
+  html,body{background:#fff!important;color:#111!important;font-size:8pt!important;overflow:visible!important;height:auto!important;}
+  :root{--bg:#fff;--bg2:#fff;--bg3:#fff;--bg4:#fff;}
   .app,.modal-overlay{display:none!important;}
-  #print-view{display:block!important;font-family:'Courier New',Courier,monospace;font-size:8pt;color:#111;}
+  #print-view{display:block!important;font-family:'Courier New',Courier,monospace;font-size:8pt;color:#111;background:#fff!important;}
 
   .p-hdr{display:flex;align-items:baseline;gap:8px;border-bottom:2.5px solid #111;padding-bottom:3px;margin-bottom:2px;}
   .p-title{font-family:'Arial Black',Helvetica,sans-serif;font-size:11pt;font-weight:900;

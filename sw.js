@@ -1,4 +1,4 @@
-const CACHE_NAME = 'combat-log-v3';
+const CACHE_NAME = 'combat-log-v4';
 const URLS_TO_CACHE = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {

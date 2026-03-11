@@ -26,11 +26,17 @@
   --lair-h:40px;
   --head-h:34px;
 }
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;
+  background:var(--bg);color:var(--fg);
   font-family:'SF Mono','Menlo','Courier New',monospace;font-size:13px;}
 
-.app{display:flex;flex-direction:column;height:100%;
+.app{position:fixed;inset:0;display:flex;flex-direction:column;
   padding-top:env(safe-area-inset-top,0px);background:var(--bg2);}
+
+/* iOS Safari: prevent scroll-into-view jump when focusing inputs.
+   Safari skips its auto-scroll when the element has opacity:0 at focus time. */
+@keyframes _ios_no_scroll{0%{opacity:0}100%{opacity:1}}
+input:focus{animation:_ios_no_scroll 0.01s;}
 
 /* ── HEADER ── */
 .hdr{display:flex;align-items:center;gap:10px;padding:8px 12px;
@@ -82,7 +88,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
   display:flex;flex-direction:column;border-right:2px solid var(--border2);background:var(--bg);}
 .grid-left-head{height:var(--head-h);min-height:var(--head-h);display:flex;align-items:center;
   background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;}
-.grid-left-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.grid-left-body{flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:none;}
 /* Hide left scrollbar — scroll driven by sync or direct touch */
 .grid-left-body::-webkit-scrollbar{display:none;}
 .grid-left-body{-ms-overflow-style:none;scrollbar-width:none;}
@@ -90,7 +97,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--fg);
 .grid-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .grid-right-head{height:var(--head-h);min-height:var(--head-h);
   background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;overflow:hidden;}
-.grid-right-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
+.grid-right-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}
 
 .head-cell{display:flex;align-items:center;justify-content:center;height:100%;
   font-family:'Avenir Next',sans-serif;font-size:9px;font-weight:700;
@@ -390,23 +397,11 @@ function setupScrollSync(){
     syncing=false;
   },{passive:true});
 
-  // Prevent iOS from snapping scroll when focusing inputs.
-  // The keyboard animation takes ~300ms and iOS adjusts scroll multiple
-  // times during it, so we restore position repeatedly to counteract.
+  // Fallback scroll-position restore on focus (main fix is CSS opacity animation)
   document.addEventListener('focus',e=>{
     if(!e.target.matches||!e.target.matches('input'))return;
     const rbTop=rb.scrollTop;const rbLeft=rb.scrollLeft;const lbTop=lb.scrollTop;
-    const restore=()=>{rb.scrollTop=rbTop;rb.scrollLeft=rbLeft;lb.scrollTop=lbTop;};
-    restore();
-    requestAnimationFrame(restore);
-    // Keep restoring through the keyboard animation
-    const t1=setTimeout(restore,50);
-    const t2=setTimeout(restore,150);
-    const t3=setTimeout(restore,300);
-    // Clean up if user scrolls intentionally during the window
-    const cancel=()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);
-      rb.removeEventListener('touchmove',cancel);};
-    rb.addEventListener('touchmove',cancel,{once:true,passive:true});
+    requestAnimationFrame(()=>{rb.scrollTop=rbTop;rb.scrollLeft=rbLeft;lb.scrollTop=lbTop;});
   },true);
 }
 

@@ -33,12 +33,11 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;
 .app{position:fixed;inset:0;display:flex;flex-direction:column;
   padding-top:env(safe-area-inset-top,0px);background:var(--bg2);}
 
-/* iOS Safari: prevent scroll-into-view jump when focusing inputs.
-   Safari skips its auto-scroll when the element has opacity:0 at focus time. */
+/* iOS Safari: prevent scroll-into-view jump when focusing inputs. */
 @keyframes _ios_no_scroll{0%{opacity:0}100%{opacity:1}}
 input:focus{animation:_ios_no_scroll 0.01s;}
 
-/* ── HEADER ── */
+/* -- HEADER -- */
 .hdr{display:flex;align-items:center;gap:10px;padding:8px 12px;
   background:var(--bg2);border-bottom:2px solid var(--border2);flex-shrink:0;flex-wrap:wrap;}
 .hdr-title{font-family:'Avenir Next','Helvetica Neue',Helvetica,sans-serif;
@@ -58,12 +57,7 @@ input:focus{animation:_ios_no_scroll 0.01s;}
   border-radius:var(--radius);padding:2px 8px;white-space:nowrap;}
 .lr-box .lbl{font-size:8px;}
 
-/* ── LEGEND ── */
-.legend-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:4px 12px;background:var(--bg2);border-bottom:1px solid var(--border);
-  font-family:'Avenir Next',sans-serif;font-size:9px;color:var(--fg4);flex-shrink:0;flex-wrap:wrap;}
-
-/* ── TOOLBAR ── */
+/* -- TOOLBAR -- */
 .toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;
   background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
 .btn{font-family:'Avenir Next','Helvetica Neue',sans-serif;font-size:11px;font-weight:600;
@@ -71,33 +65,36 @@ input:focus{animation:_ios_no_scroll 0.01s;}
   background:var(--bg3);color:var(--fg2);cursor:pointer;white-space:nowrap;
   min-height:36px;touch-action:manipulation;transition:background 0.15s,border-color 0.15s;}
 .btn:active{background:var(--bg4);border-color:var(--fg4);}
+.btn:disabled{opacity:0.35;cursor:default;pointer-events:none;}
 .btn.primary{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 .btn.primary:active{background:rgba(124,154,255,0.25);}
 .btn.danger{background:var(--red-dim);border-color:rgba(248,113,113,0.3);color:var(--red);}
 .btn.danger:active{background:rgba(248,113,113,0.25);}
 .btn.export{border-color:var(--green);color:var(--green);background:var(--green-dim);}
 .btn.export:active{background:rgba(74,222,128,0.25);}
+.btn.sm-btn{padding:6px 8px;min-height:36px;}
 .toolbar .spacer{flex:1;}
 .round-indicator{font-family:'Avenir Next',sans-serif;font-size:12px;font-weight:700;
   color:var(--accent);letter-spacing:0.04em;}
+.btn-group{display:flex;gap:2px;align-items:center;}
 
-/* ── TWO-PANEL GRID ── */
+/* -- TWO-PANEL GRID -- */
 .grid-container{flex:1;display:flex;overflow:hidden;}
 
 .grid-left{width:var(--left-w);min-width:var(--left-w);flex-shrink:0;
   display:flex;flex-direction:column;border-right:2px solid var(--border2);background:var(--bg);}
 .grid-left-head{height:var(--head-h);min-height:var(--head-h);display:flex;align-items:center;
   background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;}
-.grid-left-body{flex:1;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:none;}
-/* Hide left scrollbar — scroll driven by sync or direct touch */
+.grid-left-body{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:none;
+  padding-bottom:env(safe-area-inset-bottom,0px);}
 .grid-left-body::-webkit-scrollbar{display:none;}
 .grid-left-body{-ms-overflow-style:none;scrollbar-width:none;}
 
 .grid-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .grid-right-head{height:var(--head-h);min-height:var(--head-h);
   background:var(--bg3);border-bottom:2px solid var(--border2);flex-shrink:0;overflow:hidden;}
-.grid-right-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}
+.grid-right-body{flex:1;overflow:auto;overscroll-behavior:none;
+  padding-bottom:env(safe-area-inset-bottom,0px);}
 
 .head-cell{display:flex;align-items:center;justify-content:center;height:100%;
   font-family:'Avenir Next',sans-serif;font-size:9px;font-weight:700;
@@ -115,13 +112,12 @@ input:focus{animation:_ios_no_scroll 0.01s;}
 .round-head-inner{display:flex;min-width:max-content;}
 .rounds-inner{display:flex;min-width:max-content;}
 
-/* ── ROW ── */
+/* -- ROW -- */
 .row-left,.row-right{display:flex;border-bottom:1px solid var(--border);}
 .row-left.even,.row-right.even{background:var(--bg2);}
 .row-left.lair,.row-right.lair{min-height:var(--lair-h);
   background:var(--bg3)!important;border-bottom:2px solid var(--border2);}
 
-/* Left cells */
 .cell-init{width:52px;min-width:52px;display:flex;align-items:flex-start;
   justify-content:center;padding:6px 2px;border-right:1px solid var(--border);}
 .cell-ac{width:46px;min-width:46px;display:flex;align-items:flex-start;
@@ -151,7 +147,7 @@ input:focus{animation:_ios_no_scroll 0.01s;}
 .chk{-webkit-appearance:none;appearance:none;width:18px;height:18px;border:1.5px solid var(--fg4);
   border-radius:2px;background:transparent;cursor:pointer;flex-shrink:0;position:relative;}
 .chk:checked{background:var(--accent);border-color:var(--accent);}
-.chk:checked::after{content:'✓';position:absolute;top:50%;left:50%;
+.chk:checked::after{content:'\2713';position:absolute;top:50%;left:50%;
   transform:translate(-50%,-50%);font-size:12px;color:var(--bg);font-weight:700;}
 .chk.round{border-radius:50%;}
 .chk.success:checked{background:var(--green);border-color:var(--green);}
@@ -160,7 +156,6 @@ input:focus{animation:_ios_no_scroll 0.01s;}
 .death-group{display:flex;align-items:center;gap:2px;}
 .death-sep{color:var(--fg4);font-size:10px;margin:0 2px;}
 
-/* Delete: always subtly visible, more prominent on hover/touch */
 .row-delete{position:absolute;right:2px;top:2px;width:22px;height:22px;border:none;
   background:transparent;color:var(--fg4);font-size:16px;cursor:pointer;border-radius:50%;
   display:flex;align-items:center;justify-content:center;opacity:0.35;
@@ -169,7 +164,6 @@ input:focus{animation:_ios_no_scroll 0.01s;}
 .row-delete:active{background:var(--red-dim);color:var(--red);opacity:1;}
 @media (pointer:coarse){.row-delete{opacity:0.5;}}
 
-/* Round cell */
 .cell-round{width:var(--round-w);min-width:var(--round-w);flex-shrink:0;
   border-left:1px solid var(--border);padding:4px 6px;}
 .action-line{display:flex;align-items:center;gap:4px;min-height:26px;}
@@ -195,7 +189,6 @@ input:focus{animation:_ios_no_scroll 0.01s;}
   font-size:11px;padding:2px 2px;outline:none;min-width:0;height:20px;}
 .free-desc:focus{border-bottom-color:var(--fg3);}
 
-/* Lair */
 .lair-left{display:flex;align-items:center;gap:8px;padding:0 8px;flex:1;}
 .lair-label{font-family:'Avenir Next',sans-serif;font-size:10px;font-weight:800;
   text-transform:uppercase;letter-spacing:0.06em;color:var(--fg2);}
@@ -204,7 +197,6 @@ input:focus{animation:_ios_no_scroll 0.01s;}
   border-left:1px solid var(--border);padding:4px 6px;}
 .lair-sep{color:var(--fg4);font-size:12px;}
 
-/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;
   display:none;align-items:center;justify-content:center;}
 .modal-overlay.show{display:flex;}
@@ -223,7 +215,6 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 input[type=number]{-moz-appearance:textfield;}
 
-/* ── PRINT VIEW ── */
 #print-view{display:none;}
 
 @media print{
@@ -244,7 +235,7 @@ input[type=number]{-moz-appearance:textfield;}
   .p-hdr-f.grow{flex:1;}
 
   .p-legend{font-family:Arial,sans-serif;font-size:5pt;color:#555;padding:1px 0;
-    margin-bottom:1px;border-bottom:1px solid #b0b0b0;display:flex;justify-content:space-between;}
+    margin-bottom:1px;border-bottom:1px solid #b0b0b0;}
 
   .p-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.5pt;}
   .p-table th{font-family:Arial,sans-serif;font-size:5.5pt;font-weight:700;text-transform:uppercase;
@@ -282,15 +273,15 @@ input[type=number]{-moz-appearance:textfield;}
     <span class="hdr-ed">2024</span>
     <div class="hdr-field grow">
       <span class="lbl">Encounter</span>
-      <input class="hdr-input" id="h-encounter" placeholder="—">
+      <input class="hdr-input" id="h-encounter" placeholder="—" aria-label="Encounter name">
     </div>
     <div class="hdr-field grow">
       <span class="lbl">Player</span>
-      <input class="hdr-input" id="h-player" placeholder="—">
+      <input class="hdr-input" id="h-player" placeholder="—" aria-label="Player name">
     </div>
     <div class="hdr-field">
       <span class="lbl">Session</span>
-      <input class="hdr-input sm" id="h-session" placeholder="—">
+      <input class="hdr-input sm" id="h-session" placeholder="—" aria-label="Session number">
     </div>
     <div class="lr-box">
       <span class="lbl" style="font-size:8px;">Legendary Res.</span>
@@ -298,30 +289,31 @@ input[type=number]{-moz-appearance:textfield;}
     </div>
   </div>
 
-  <div class="legend-bar">
-    <span>A = Action · B = Bonus · R = Reaction</span>
-    <span>BLI Blinded · CHM Charmed · DEF Deafened · EXH Exhaustion · FRI Frightened · GRP Grappled · INC Incapacitated · INV Invisible · PAR Paralyzed · PET Petrified · POI Poisoned · PRO Prone · RES Restrained · STN Stunned · UNC Unconscious</span>
-  </div>
-
   <div class="toolbar">
-    <button class="btn primary" id="btn-add-combatant">+ Combatant</button>
-    <button class="btn" id="btn-add-round">+ Round</button>
-    <button class="btn" id="btn-sort-init">Sort Init ↓</button>
+    <div class="btn-group">
+      <button class="btn primary" id="btn-add-combatant">+ Combatant</button>
+      <button class="btn sm-btn" id="btn-rm-combatant" title="Remove last combatant" aria-label="Remove last combatant">&minus;</button>
+    </div>
+    <div class="btn-group">
+      <button class="btn" id="btn-add-round">+ Round</button>
+      <button class="btn sm-btn" id="btn-rm-round" title="Remove last round" aria-label="Remove last round">&minus;</button>
+    </div>
+    <button class="btn" id="btn-sort-init">Sort Init &darr;</button>
     <span class="spacer"></span>
     <span class="round-indicator" id="round-ind">Round 1</span>
-    <button class="btn" id="btn-prev-round">◀</button>
-    <button class="btn primary" id="btn-next-round">Next ▶</button>
+    <button class="btn" id="btn-prev-round" aria-label="Previous round">&lsaquo;</button>
+    <button class="btn primary" id="btn-next-round">Next &rsaquo;</button>
     <span class="spacer"></span>
     <button class="btn danger" id="btn-clear-all">Clear All</button>
     <button class="btn export" id="btn-print-export">Save PDF</button>
   </div>
 
-  <div class="grid-container">
+  <div class="grid-container" role="grid" aria-label="Combat tracker">
     <div class="grid-left">
-      <div class="grid-left-head">
-        <div class="head-cell head-init">Init</div>
-        <div class="head-cell head-ac">AC</div>
-        <div class="head-cell head-info">Combatant Info</div>
+      <div class="grid-left-head" role="row">
+        <div class="head-cell head-init" role="columnheader">Init</div>
+        <div class="head-cell head-ac" role="columnheader">AC</div>
+        <div class="head-cell head-info" role="columnheader">Combatant Info</div>
       </div>
       <div class="grid-left-body" id="left-body"></div>
     </div>
@@ -332,9 +324,9 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-overlay">
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
-    <h3>Clear All Data?</h3>
+    <h3 id="modal-title">Clear All Data?</h3>
     <p>This removes all combatants, rounds, and header info. Cannot be undone.</p>
     <div class="modal-btns">
       <button class="btn" id="btn-modal-cancel">Cancel</button>
@@ -343,27 +335,52 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
-<!-- PRINT VIEW: populated by printExport(), visible only in @media print -->
 <div id="print-view"></div>
 
 <script>
+
 const STORAGE_KEY='dnd2024-combat-log';
+const STATE_VERSION=2;
 let state=loadState();
 
-function defaultState(){return{encounter:'',player:'',session:'',currentRound:1,numRounds:6,
+function defaultState(){return{_v:STATE_VERSION,encounter:'',player:'',session:'',currentRound:1,numRounds:3,
   legendaryRes:[false,false,false,false,false],lairInit:'',combatants:defaultCombatants(),lair:{},legendary:{}};}
-function defaultCombatants(){const a=[];for(let i=0;i<8;i++)a.push(newCombatant());return a;}
+function defaultCombatants(){const a=[];for(let i=0;i<4;i++)a.push(newCombatant());return a;}
 function newCombatant(){return{id:crypto.randomUUID(),init:'',ac:'',name:'',hp:'',maxHp:'',thp:'',spd:'',conc:'',
   deathS:[false,false,false],deathF:[false,false,false],inspiration:false,rounds:{}};}
-function getRound(c,r){if(!c.rounds[r])c.rounds[r]={action:'',bonus:'',reaction:'',freeLabel:'',freeDesc:''};return c.rounds[r];}
-function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){const s=JSON.parse(raw);
-  if(s.combatants)s.combatants.forEach(c=>{if(!c.id)c.id=crypto.randomUUID();});return s;}}catch(e){}return defaultState();}
+function getRound(c,r){return c.rounds[r]||{action:'',bonus:'',reaction:'',freeLabel:'',freeDesc:''};}
+function ensureRound(c,r){if(!c.rounds[r])c.rounds[r]={action:'',bonus:'',reaction:'',freeLabel:'',freeDesc:''};return c.rounds[r];}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const s=JSON.parse(raw);
+      const def=defaultState();
+      return{
+        _v:STATE_VERSION,
+        encounter:s.encounter||'',player:s.player||'',session:s.session||'',
+        currentRound:s.currentRound||1,
+        numRounds:s.numRounds||def.numRounds,
+        legendaryRes:Array.isArray(s.legendaryRes)&&s.legendaryRes.length===5?s.legendaryRes:def.legendaryRes,
+        lairInit:s.lairInit||'',
+        lair:s.lair||{},legendary:s.legendary||{},
+        combatants:(Array.isArray(s.combatants)?s.combatants:def.combatants).map(c=>({
+          ...newCombatant(),...c,
+          id:c.id||crypto.randomUUID(),
+          deathS:Array.isArray(c.deathS)&&c.deathS.length===3?c.deathS:[false,false,false],
+          deathF:Array.isArray(c.deathF)&&c.deathF.length===3?c.deathF:[false,false,false],
+          rounds:c.rounds||{}
+        }))
+      };
+    }
+  }catch(e){}
+  return defaultState();
+}
 function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
 let saveTimer=null;
 function queueSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveState,300);}
 function flushSave(){clearTimeout(saveTimer);saveState();}
 
-// ── FOCUS PRESERVATION ──
 function getActiveFieldId(){
   const el=document.activeElement;
   if(!el||!el.matches('input'))return null;
@@ -378,26 +395,21 @@ function restoreFocus(fieldId){
   });
 }
 
-// ── SCROLL SYNC (bidirectional for iPad touch on either panel) ──
 function setupScrollSync(){
   const rb=document.getElementById('right-body');
   const lb=document.getElementById('left-body');
   const rh=document.getElementById('right-head');
   let syncing=false;
-
   rb.addEventListener('scroll',()=>{
     if(syncing)return;syncing=true;
     lb.scrollTop=rb.scrollTop;rh.scrollLeft=rb.scrollLeft;
     syncing=false;
   },{passive:true});
-
   lb.addEventListener('scroll',()=>{
     if(syncing)return;syncing=true;
     rb.scrollTop=lb.scrollTop;
     syncing=false;
   },{passive:true});
-
-  // Fallback scroll-position restore on focus (main fix is CSS opacity animation)
   document.addEventListener('focus',e=>{
     if(!e.target.matches||!e.target.matches('input'))return;
     const rbTop=rb.scrollTop;const rbLeft=rb.scrollLeft;const lbTop=lb.scrollTop;
@@ -405,21 +417,54 @@ function setupScrollSync(){
   },true);
 }
 
+function setupRoundTabOrder(){
+  document.getElementById('right-body').addEventListener('keydown',e=>{
+    if(e.key!=='Tab')return;
+    const el=e.target;
+    if(!el.dataset.tabRound)return;
+    const round=parseInt(el.dataset.tabRound);
+    const combIdx=parseInt(el.dataset.tabCombIdx);
+    const fieldIdx=parseInt(el.dataset.tabFieldIdx);
+    const numCombs=state.combatants.length;
+    const fieldsPerComb=5;
+    let nr=round,nc=combIdx,nf=fieldIdx;
+    if(!e.shiftKey){
+      nf++;
+      if(nf>=fieldsPerComb){nf=0;nc++;}
+      if(nc>=numCombs){nc=0;nr++;}
+      if(nr>state.numRounds)return;
+    }else{
+      nf--;
+      if(nf<0){nf=fieldsPerComb-1;nc--;}
+      if(nc<0){nc=numCombs-1;nr--;}
+      if(nr<1)return;
+    }
+    const target=document.querySelector(
+      '[data-tab-round="'+nr+'"][data-tab-comb-idx="'+nc+'"][data-tab-field-idx="'+nf+'"]'
+    );
+    if(target){e.preventDefault();target.focus();}
+  });
+}
+
 function render(){
   const focusId=getActiveFieldId();
-  renderHeader();renderLR();renderRoundHeaders();renderRows();updateRoundIndicator();
+  renderHeader();renderLR();renderRoundHeaders();renderRows();updateRoundIndicator();updateRemoveButtons();
   requestAnimationFrame(()=>{syncRowHeights();restoreFocus(focusId);});
 }
 
 function renderHeader(){
-  document.getElementById('h-encounter').value=state.encounter;
-  document.getElementById('h-player').value=state.player;
-  document.getElementById('h-session').value=state.session;
+  const enc=document.getElementById('h-encounter');
+  const plr=document.getElementById('h-player');
+  const ses=document.getElementById('h-session');
+  if(document.activeElement!==enc)enc.value=state.encounter;
+  if(document.activeElement!==plr)plr.value=state.player;
+  if(document.activeElement!==ses)ses.value=state.session;
 }
 function renderLR(){
   const el=document.getElementById('lr-checks');el.innerHTML='';
   for(let i=0;i<5;i++){const cb=document.createElement('input');cb.type='checkbox';cb.className='chk';
     cb.checked=state.legendaryRes[i];cb.style.cssText='width:16px;height:16px;';
+    cb.setAttribute('aria-label','Legendary resistance '+(i+1));
     cb.addEventListener('change',()=>{state.legendaryRes[i]=cb.checked;queueSave();});el.appendChild(cb);}
 }
 function renderRoundHeaders(){
@@ -429,10 +474,12 @@ function renderRoundHeaders(){
     const d=document.createElement('div');d.className='head-cell head-round';
     const span=document.createElement('span');span.className='rn'+(r===state.currentRound?' active':'');
     span.textContent=r;
+    span.setAttribute('role','button');
+    span.setAttribute('aria-label','Go to round '+r);
     span.addEventListener('click',()=>{state.currentRound=r;updateRoundIndicator();renderRoundHeaders();queueSave();});
     d.appendChild(span);inner.appendChild(d);
   }
-  rh.innerHTML='';rh.appendChild(inner);
+  rh.replaceChildren(inner);
 }
 
 function renderRows(){
@@ -444,13 +491,17 @@ function renderRows(){
   const lairL=document.createElement('div');lairL.className='row-left lair';
   const liCell=document.createElement('div');liCell.className='cell-init';
   const liIn=document.createElement('input');liIn.type='number';liIn.className='num-input';
-  liIn.placeholder='—';liIn.style.height='28px';liIn.value=state.lairInit||'';
+  liIn.placeholder='\u2014';liIn.style.height='28px';liIn.value=state.lairInit||'';
   liIn.dataset.fieldId='lair-init';
+  liIn.setAttribute('aria-label','Lair initiative');
   liIn.addEventListener('input',()=>{state.lairInit=liIn.value;queueSave();});
   liCell.appendChild(liIn);lairL.appendChild(liCell);
   const laCell=document.createElement('div');laCell.className='cell-ac';lairL.appendChild(laCell);
   const lInfo=document.createElement('div');lInfo.className='lair-left';
-  lInfo.innerHTML='<span class="lair-label">Lair</span><span style="flex:1"></span><span class="lair-label">Legendary Actions</span>';
+  const lairSpan1=document.createElement('span');lairSpan1.className='lair-label';lairSpan1.textContent='Lair';
+  const lairFlex=document.createElement('span');lairFlex.style.flex='1';
+  const lairSpan2=document.createElement('span');lairSpan2.className='lair-label';lairSpan2.textContent='Legendary Actions';
+  lInfo.appendChild(lairSpan1);lInfo.appendChild(lairFlex);lInfo.appendChild(lairSpan2);
   lairL.appendChild(lInfo);lb.appendChild(lairL);
 
   const lairR=document.createElement('div');lairR.className='row-right lair';
@@ -458,10 +509,14 @@ function renderRows(){
   for(let r=1;r<=state.numRounds;r++){
     const cell=document.createElement('div');cell.className='lair-cell';
     if(!state.lair[r])state.lair[r]=false;
-    const lCb=mkChk('',state.lair[r],v=>{state.lair[r]=v;queueSave();});cell.appendChild(lCb);
+    const lCb=mkChk('',state.lair[r],v=>{state.lair[r]=v;queueSave();},'Lair action round '+r);
+    cell.appendChild(lCb);
     const sep=document.createElement('span');sep.className='lair-sep';sep.textContent='|';cell.appendChild(sep);
     if(!state.legendary[r])state.legendary[r]=[false,false,false];
-    for(let a=0;a<3;a++){const cb=mkChk('',state.legendary[r][a],v=>{state.legendary[r][a]=v;queueSave();});cell.appendChild(cb);}
+    for(let a=0;a<3;a++){
+      const cb=mkChk('',state.legendary[r][a],v=>{state.legendary[r][a]=v;queueSave();},'Legendary action '+(a+1)+' round '+r);
+      cell.appendChild(cb);
+    }
     lairInner.appendChild(cell);
   }
   lairR.appendChild(lairInner);rb.appendChild(lairR);
@@ -469,66 +524,69 @@ function renderRows(){
   // COMBATANT ROWS
   state.combatants.forEach((c,idx)=>{
     const even=idx%2===1?' even':'';
+    const label=c.name||'Combatant '+(idx+1);
 
-    // LEFT
     const rowL=document.createElement('div');rowL.className='row-left'+even;rowL.dataset.row=c.id;
-
     const initCell=document.createElement('div');initCell.className='cell-init';
     const initIn=document.createElement('input');initIn.type='number';initIn.className='num-input';
-    initIn.placeholder='—';initIn.value=c.init;
+    initIn.placeholder='\u2014';initIn.value=c.init;
     initIn.dataset.fieldId='init-'+c.id;
+    initIn.setAttribute('aria-label','Initiative for '+label);
     initIn.addEventListener('input',()=>{c.init=initIn.value;queueSave();});
     initCell.appendChild(initIn);rowL.appendChild(initCell);
 
     const acCell=document.createElement('div');acCell.className='cell-ac';
     const acIn=document.createElement('input');acIn.type='number';acIn.className='num-input';
-    acIn.placeholder='—';acIn.value=c.ac;
+    acIn.placeholder='\u2014';acIn.value=c.ac;
     acIn.dataset.fieldId='ac-'+c.id;
+    acIn.setAttribute('aria-label','Armor class for '+label);
     acIn.addEventListener('input',()=>{c.ac=acIn.value;queueSave();});
     acCell.appendChild(acIn);rowL.appendChild(acCell);
 
     const info=document.createElement('div');info.className='cell-info';
-
     const nameRow=document.createElement('div');nameRow.style.cssText='display:flex;align-items:center;gap:0;';
     const nameIn=document.createElement('input');nameIn.className='name-input';
-    nameIn.placeholder='Combatant name…';nameIn.value=c.name;
+    nameIn.placeholder='Combatant name\u2026';nameIn.value=c.name;
     nameIn.dataset.fieldId='name-'+c.id;
+    nameIn.setAttribute('aria-label','Name for combatant '+(idx+1));
     nameIn.addEventListener('input',()=>{c.name=nameIn.value;queueSave();});
     nameRow.appendChild(nameIn);
 
-    const del=document.createElement('button');del.className='row-delete';del.textContent='×';
+    const del=document.createElement('button');del.className='row-delete';del.textContent='\u00d7';
+    del.setAttribute('aria-label','Remove '+label);
     del.addEventListener('click',e=>{e.stopPropagation();removeCombatant(c.id);});
     nameRow.appendChild(del);
     info.appendChild(nameRow);
 
     const hpR=document.createElement('div');hpR.className='info-row';
     hpR.appendChild(mkLbl('HP'));
-    hpR.appendChild(mkInput('w-sm',c.hp,v=>{c.hp=v;queueSave();},'hp-'+c.id));
+    hpR.appendChild(mkInput('w-sm',c.hp,v=>{c.hp=v;queueSave();},'hp-'+c.id,'Current HP for '+label));
     hpR.appendChild(mkSlash());
-    hpR.appendChild(mkInput('w-sm',c.maxHp,v=>{c.maxHp=v;queueSave();},'maxhp-'+c.id));
+    hpR.appendChild(mkInput('w-sm',c.maxHp,v=>{c.maxHp=v;queueSave();},'maxhp-'+c.id,'Max HP for '+label));
     const tL=mkLbl('THP');tL.style.marginLeft='4px';hpR.appendChild(tL);
-    hpR.appendChild(mkInput('w-sm',c.thp,v=>{c.thp=v;queueSave();},'thp-'+c.id));
+    hpR.appendChild(mkInput('w-sm',c.thp,v=>{c.thp=v;queueSave();},'thp-'+c.id,'Temp HP for '+label));
     const sL=mkLbl('SPD');sL.style.marginLeft='4px';hpR.appendChild(sL);
-    hpR.appendChild(mkInput('w-sm',c.spd,v=>{c.spd=v;queueSave();},'spd-'+c.id));
+    hpR.appendChild(mkInput('w-sm',c.spd,v=>{c.spd=v;queueSave();},'spd-'+c.id,'Speed for '+label));
     info.appendChild(hpR);
 
     const concR=document.createElement('div');concR.className='info-row';
     concR.appendChild(mkLbl('Conc'));
-    const concIn=mkInput('w-lg',c.conc,v=>{c.conc=v;queueSave();},'conc-'+c.id);concIn.placeholder='—';
+    const concIn=mkInput('w-lg',c.conc,v=>{c.conc=v;queueSave();},'conc-'+c.id,'Concentration for '+label);
+    concIn.placeholder='\u2014';
     concR.appendChild(concIn);info.appendChild(concR);
 
     const dR=document.createElement('div');dR.className='info-row';
     dR.appendChild(mkLbl('Death'));
     const dg=document.createElement('span');dg.className='death-group';
-    for(let s=0;s<3;s++){const cb=mkChk('round success',c.deathS[s],v=>{c.deathS[s]=v;queueSave();});
+    for(let s=0;s<3;s++){const cb=mkChk('round success',c.deathS[s],v=>{c.deathS[s]=v;queueSave();},'Death save success '+(s+1)+' for '+label);
       cb.style.cssText='width:16px;height:16px;';dg.appendChild(cb);}
     dg.appendChild(mkDeathSep());
-    for(let f=0;f<3;f++){const cb=mkChk('round fail',c.deathF[f],v=>{c.deathF[f]=v;queueSave();});
+    for(let f=0;f<3;f++){const cb=mkChk('round fail',c.deathF[f],v=>{c.deathF[f]=v;queueSave();},'Death save fail '+(f+1)+' for '+label);
       cb.style.cssText='width:16px;height:16px;';dg.appendChild(cb);}
     dR.appendChild(dg);
     const iW=document.createElement('span');iW.style.cssText='margin-left:auto;display:flex;align-items:center;gap:3px;';
     const iL=mkLbl('INSP');iL.style.color='var(--fg4)';iW.appendChild(iL);
-    const iCb=mkChk('',c.inspiration,v=>{c.inspiration=v;queueSave();});iCb.style.cssText='width:16px;height:16px;';
+    const iCb=mkChk('',c.inspiration,v=>{c.inspiration=v;queueSave();},'Inspiration for '+label);iCb.style.cssText='width:16px;height:16px;';
     iW.appendChild(iCb);dR.appendChild(iW);info.appendChild(dR);
 
     rowL.appendChild(info);lb.appendChild(rowL);
@@ -537,22 +595,28 @@ function renderRows(){
     const rowR=document.createElement('div');rowR.className='row-right'+even;rowR.dataset.row=c.id;
     const ri=document.createElement('div');ri.className='rounds-inner';
     for(let r=1;r<=state.numRounds;r++){
-      const rd=getRound(c,r);
+      const rd=ensureRound(c,r);
       const cell=document.createElement('div');cell.className='cell-round';
-      [['a','action','Action…'],['b','bonus','Bonus…'],['r','reaction','Reaction…']].forEach(([tag,key,ph])=>{
+      [['a','action','Action\u2026',0],['b','bonus','Bonus\u2026',1],['r','reaction','Reaction\u2026',2]].forEach(([tag,key,ph,fi])=>{
         const line=document.createElement('div');line.className='action-line';
         const tEl=document.createElement('span');tEl.className='action-tag '+tag;tEl.textContent=tag.toUpperCase();
         const inp=document.createElement('input');inp.className='action-input';inp.placeholder=ph;inp.value=rd[key];
         inp.dataset.fieldId=key+'-'+c.id+'-r'+r;
+        inp.dataset.tabRound=r;inp.dataset.tabCombIdx=idx;inp.dataset.tabFieldIdx=fi;
+        inp.setAttribute('aria-label',ph.replace('\u2026','')+' for '+label+' round '+r);
         inp.addEventListener('input',()=>{rd[key]=inp.value;queueSave();});
         line.appendChild(tEl);line.appendChild(inp);cell.appendChild(line);
       });
       const fl=document.createElement('div');fl.className='free-line';
-      const fLbl=document.createElement('input');fLbl.className='free-label';fLbl.placeholder='···';fLbl.value=rd.freeLabel;
+      const fLbl=document.createElement('input');fLbl.className='free-label';fLbl.placeholder='\u00b7\u00b7\u00b7';fLbl.value=rd.freeLabel;
       fLbl.dataset.fieldId='flbl-'+c.id+'-r'+r;
+      fLbl.dataset.tabRound=r;fLbl.dataset.tabCombIdx=idx;fLbl.dataset.tabFieldIdx='3';
+      fLbl.setAttribute('aria-label','Custom label for '+label+' round '+r);
       fLbl.addEventListener('input',()=>{rd.freeLabel=fLbl.value;queueSave();});
       const fDesc=document.createElement('input');fDesc.className='free-desc';fDesc.value=rd.freeDesc;
       fDesc.dataset.fieldId='fdesc-'+c.id+'-r'+r;
+      fDesc.dataset.tabRound=r;fDesc.dataset.tabCombIdx=idx;fDesc.dataset.tabFieldIdx='4';
+      fDesc.setAttribute('aria-label','Custom note for '+label+' round '+r);
       fDesc.addEventListener('input',()=>{rd.freeDesc=fDesc.value;queueSave();});
       fl.appendChild(fLbl);fl.appendChild(fDesc);cell.appendChild(fl);
       ri.appendChild(cell);
@@ -564,13 +628,16 @@ function renderRows(){
 function mkLbl(t){const s=document.createElement('span');s.className='lbl';s.textContent=t;return s;}
 function mkSlash(){const s=document.createElement('span');s.className='slash';s.textContent='/';return s;}
 function mkDeathSep(){const s=document.createElement('span');s.className='death-sep';s.textContent='/';return s;}
-function mkInput(cls,val,fn,fieldId){
+function mkInput(cls,val,fn,fieldId,ariaLabel){
   const i=document.createElement('input');i.className='info-input '+cls;i.value=val;
+  i.inputMode='numeric';
   if(fieldId)i.dataset.fieldId=fieldId;
+  if(ariaLabel)i.setAttribute('aria-label',ariaLabel);
   i.addEventListener('input',()=>fn(i.value));return i;
 }
-function mkChk(extra,checked,fn){const c=document.createElement('input');c.type='checkbox';
+function mkChk(extra,checked,fn,ariaLabel){const c=document.createElement('input');c.type='checkbox';
   c.className='chk'+(extra?' '+extra:'');c.checked=checked;
+  if(ariaLabel)c.setAttribute('aria-label',ariaLabel);
   c.addEventListener('change',()=>fn(c.checked));return c;}
 
 function syncRowHeights(){
@@ -578,23 +645,51 @@ function syncRowHeights(){
   const rb=document.getElementById('right-body');
   const L=[...lb.children];const R=[...rb.children];
   const len=Math.min(L.length,R.length);
-  // Reset (batch writes)
   for(let i=0;i<len;i++){L[i].style.height='auto';R[i].style.height='auto';}
-  // Batch reads
   const heights=new Array(len);
   for(let i=0;i<len;i++){heights[i]=Math.max(L[i].offsetHeight,R[i].offsetHeight);}
-  // Batch writes
   for(let i=0;i<len;i++){L[i].style.height=heights[i]+'px';R[i].style.height=heights[i]+'px';}
 }
 
 function updateRoundIndicator(){document.getElementById('round-ind').textContent='Round '+state.currentRound;}
+function updateRemoveButtons(){
+  document.getElementById('btn-rm-combatant').disabled=state.combatants.length<=1;
+  document.getElementById('btn-rm-round').disabled=state.numRounds<=1;
+}
 
-function addCombatant(){state.combatants.push(newCombatant());render();queueSave();
-  const rb=document.getElementById('right-body');rb.scrollTop=rb.scrollHeight;}
+function addCombatant(){
+  state.combatants.push(newCombatant());render();queueSave();
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    const rb=document.getElementById('right-body');rb.scrollTop=rb.scrollHeight;
+    const lb=document.getElementById('left-body');lb.scrollTop=lb.scrollHeight;
+  });});
+}
+function removeLastCombatant(){
+  if(state.combatants.length<=1)return;
+  state.combatants.pop();render();queueSave();
+}
 function removeCombatant(id){state.combatants=state.combatants.filter(c=>c.id!==id);render();queueSave();}
-function addRound(){state.numRounds++;render();queueSave();
-  const rb=document.getElementById('right-body');rb.scrollLeft=rb.scrollWidth;}
-function sortByInit(){state.combatants.sort((a,b)=>(parseFloat(b.init)||0)-(parseFloat(a.init)||0));render();queueSave();}
+function addRound(){
+  state.numRounds++;render();queueSave();
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    const rb=document.getElementById('right-body');rb.scrollLeft=rb.scrollWidth;
+  });});
+}
+function removeLastRound(){
+  if(state.numRounds<=1)return;
+  const r=state.numRounds;
+  delete state.lair[r];delete state.legendary[r];
+  state.combatants.forEach(c=>{delete c.rounds[r];});
+  state.numRounds--;
+  if(state.currentRound>state.numRounds)state.currentRound=state.numRounds;
+  render();queueSave();
+}
+function sortByInit(){
+  const indexed=state.combatants.map((c,i)=>[c,i]);
+  indexed.sort(([a,ai],[b,bi])=>(parseFloat(b.init)||0)-(parseFloat(a.init)||0)||ai-bi);
+  state.combatants=indexed.map(([c])=>c);
+  render();queueSave();
+}
 function nextRound(){
   if(state.currentRound<state.numRounds)state.currentRound++;
   else{state.numRounds++;state.currentRound=state.numRounds;}
@@ -603,15 +698,28 @@ function nextRound(){
 function prevRound(){if(state.currentRound>1){state.currentRound--;render();queueSave();scrollToRound(state.currentRound);}}
 function scrollToRound(r){
   const cells=document.querySelectorAll('.round-head-inner .head-round');
-  if(cells[r-1]){document.getElementById('right-body').scrollLeft=(r-1)*200;}
+  if(cells[r-1]){document.getElementById('right-body').scrollLeft=cells[r-1].offsetLeft;}
 }
-function confirmClear(){document.getElementById('modal-overlay').classList.add('show');}
+function confirmClear(){
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('btn-modal-cancel').focus();
+}
 function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
 function doClear(){closeModal();state=defaultState();saveState();render();}
 
-// ── TOOLBAR EVENT BINDING ──
+document.getElementById('modal-overlay').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();return;}
+  if(e.key==='Tab'){
+    const btns=[document.getElementById('btn-modal-cancel'),document.getElementById('btn-modal-confirm')];
+    if(e.shiftKey&&document.activeElement===btns[0]){e.preventDefault();btns[1].focus();}
+    else if(!e.shiftKey&&document.activeElement===btns[1]){e.preventDefault();btns[0].focus();}
+  }
+});
+
 document.getElementById('btn-add-combatant').addEventListener('click',addCombatant);
+document.getElementById('btn-rm-combatant').addEventListener('click',removeLastCombatant);
 document.getElementById('btn-add-round').addEventListener('click',addRound);
+document.getElementById('btn-rm-round').addEventListener('click',removeLastRound);
 document.getElementById('btn-sort-init').addEventListener('click',sortByInit);
 document.getElementById('btn-prev-round').addEventListener('click',prevRound);
 document.getElementById('btn-next-round').addEventListener('click',nextRound);
@@ -624,11 +732,10 @@ document.getElementById('h-encounter').addEventListener('input',e=>{state.encoun
 document.getElementById('h-player').addEventListener('input',e=>{state.player=e.target.value;queueSave();});
 document.getElementById('h-session').addEventListener('input',e=>{state.session=e.target.value;queueSave();});
 
-// ── SAVE ON PAGE HIDE (prevents data loss on iPad app/tab switch) ──
 window.addEventListener('pagehide',flushSave);
 window.addEventListener('beforeunload',flushSave);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
 
-// ── EXPORT / PRINT ──
 function printExport(){
   const pv=document.getElementById('print-view');
   const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -639,16 +746,22 @@ function printExport(){
   state.combatants.forEach(c=>{
     Object.keys(c.rounds).forEach(r=>{
       const rd=c.rounds[r];
-      if(rd.action||rd.bonus||rd.reaction||rd.freeLabel||rd.freeDesc)
+      if(rd&&(rd.action||rd.bonus||rd.reaction||rd.freeLabel||rd.freeDesc))
         usedRounds=Math.max(usedRounds,parseInt(r));
     });
+  });
+  Object.keys(state.lair).forEach(r=>{
+    if(state.lair[r])usedRounds=Math.max(usedRounds,parseInt(r));
+  });
+  Object.keys(state.legendary).forEach(r=>{
+    if((state.legendary[r]||[]).some(Boolean))usedRounds=Math.max(usedRounds,parseInt(r));
   });
   usedRounds=Math.min(usedRounds,maxRound);
 
   const activeCombatants=state.combatants.filter(c=>
     c.name||c.init||c.ac||c.hp||c.maxHp||c.conc||
     c.deathS.some(Boolean)||c.deathF.some(Boolean)||
-    Object.keys(c.rounds).some(r=>{const rd=c.rounds[r];return rd.action||rd.bonus||rd.reaction||rd.freeLabel||rd.freeDesc;})
+    Object.keys(c.rounds).some(r=>{const rd=c.rounds[r];return rd&&(rd.action||rd.bonus||rd.reaction||rd.freeLabel||rd.freeDesc);})
   );
   const rows=activeCombatants.length>0?activeCombatants:state.combatants;
 
@@ -665,11 +778,6 @@ function printExport(){
   for(let i=0;i<5;i++)h+=chk(state.legendaryRes[i]);
   h+='</div></div>';
 
-  h+='<div class="p-legend">';
-  h+='<span>A=Action · B=Bonus · R=Reaction</span>';
-  h+='<span>BLI Blinded · CHM Charmed · DEF Deafened · EXH Exhaustion · FRI Frightened · GRP Grappled · INC Incapacitated · INV Invisible · PAR Paralyzed · PET Petrified · POI Poisoned · PRO Prone · RES Restrained · STN Stunned · UNC Unconscious</span>';
-  h+='</div>';
-
   h+='<table class="p-table"><colgroup>';
   h+='<col style="width:'+initW+'%"><col style="width:'+acW+'%"><col style="width:'+infoW+'%">';
   for(let r=0;r<usedRounds;r++)h+='<col style="width:'+roundW+'%">';
@@ -678,7 +786,6 @@ function printExport(){
   for(let r=1;r<=usedRounds;r++)h+='<th><span class="p-rn">'+r+'</span></th>';
   h+='</tr></thead><tbody>';
 
-  // Lair row
   h+='<tr class="p-lair">';
   h+='<td class="c-init">'+esc(state.lairInit)+'</td>';
   h+='<td class="c-ac"></td>';
@@ -729,15 +836,16 @@ function printExport(){
 
   h+='</tbody></table>';
   pv.innerHTML=h;
-  setTimeout(()=>window.print(),100);
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>window.print());});
 }
 
 setupScrollSync();
+setupRoundTabOrder();
 render();
 window.addEventListener('resize',()=>requestAnimationFrame(syncRowHeights));
 
-// PWA: register service worker for offline use
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+
 </script>
 </body>
 </html>

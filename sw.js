@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dm-tools-v6';
+const CACHE_NAME = 'dm-tools-v7';
 const URLS_TO_CACHE = ['./', './index.html', './combat-tracker.html', './paper-tracker.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

@@ -21,6 +21,7 @@
   --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.12);
   --action:#7c9aff;--bonus:#c084fc;--reaction:#fb923c;
   --radius:4px;
+  --toggle-bg:var(--bg3);--toggle-fg:var(--fg3);
   --left-w:330px;
   --round-w:200px;
   --lair-h:40px;
@@ -29,6 +30,17 @@
 html,body{height:100%;overflow:hidden;overscroll-behavior:none;
   background:var(--bg);color:var(--fg);
   font-family:'SF Mono','Menlo','Courier New',monospace;font-size:13px;}
+.light{
+  --bg:#f4f4f5;--bg2:#ffffff;--bg3:#e8e8ec;--bg4:#d4d4d8;
+  --fg:#1c1c1e;--fg2:#3a3a3c;--fg3:#6b6b6f;--fg4:#8e8e93;
+  --border:#d1d1d6;--border2:#b0b0b6;
+  --accent:#4a6cf7;--accent2:#3b5ce4;--accent-dim:rgba(74,108,247,0.10);
+  --red:#dc2626;--red-dim:rgba(220,38,38,0.08);
+  --green:#16a34a;--green-dim:rgba(22,163,74,0.08);
+  --amber:#ca8a04;--amber-dim:rgba(202,138,4,0.08);
+  --action:#4a6cf7;--bonus:#9333ea;--reaction:#ea580c;
+  --toggle-bg:var(--bg3);--toggle-fg:var(--fg3);
+}
 
 .app{position:fixed;inset:0;display:flex;flex-direction:column;
   padding-top:env(safe-area-inset-top,0px);background:var(--bg2);}
@@ -77,6 +89,7 @@ input:focus{animation:_ios_no_scroll 0.01s;}
 .round-indicator{font-family:'Avenir Next',sans-serif;font-size:12px;font-weight:700;
   color:var(--accent);letter-spacing:0.04em;}
 .btn-group{display:flex;gap:2px;align-items:center;}
+.btn.theme-toggle{font-size:15px;padding:6px 10px;line-height:1;}
 
 /* -- TWO-PANEL GRID -- */
 .grid-container{flex:1;display:flex;overflow:hidden;}
@@ -148,7 +161,7 @@ input:focus{animation:_ios_no_scroll 0.01s;}
   border-radius:2px;background:transparent;cursor:pointer;flex-shrink:0;position:relative;}
 .chk:checked{background:var(--accent);border-color:var(--accent);}
 .chk:checked::after{content:'\2713';position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);font-size:12px;color:var(--bg);font-weight:700;}
+  transform:translate(-50%,-50%);font-size:12px;color:#fff;font-weight:700;}
 .chk.round{border-radius:50%;}
 .chk.success:checked{background:var(--green);border-color:var(--green);}
 .chk.fail{border-style:dashed;}
@@ -305,6 +318,7 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="btn primary" id="btn-next-round">Next &rsaquo;</button>
     <span class="spacer"></span>
     <button class="btn danger" id="btn-clear-all">Clear All</button>
+    <button class="btn theme-toggle" id="btn-theme" title="Toggle light/dark mode" aria-label="Toggle light/dark mode">☀</button>
     <button class="btn export" id="btn-print-export">Save PDF</button>
   </div>
 
@@ -340,7 +354,22 @@ input[type=number]{-moz-appearance:textfield;}
 <script>
 
 const STORAGE_KEY='dnd2024-combat-log';
+const THEME_KEY='dnd2024-theme';
 const STATE_VERSION=2;
+
+function applyTheme(theme){
+  document.documentElement.classList.toggle('light',theme==='light');
+  document.getElementById('btn-theme').textContent=theme==='light'?'☾':'☀';
+  const mc=document.querySelector('meta[name="theme-color"]');
+  if(mc)mc.content=theme==='light'?'#ffffff':'#141517';
+}
+function toggleTheme(){
+  const next=document.documentElement.classList.contains('light')?'dark':'light';
+  try{localStorage.setItem(THEME_KEY,next);}catch(e){}
+  applyTheme(next);
+}
+(function(){const t=localStorage.getItem(THEME_KEY);if(t)applyTheme(t);})();
+
 let state=loadState();
 
 function defaultState(){return{_v:STATE_VERSION,encounter:'',player:'',session:'',currentRound:1,numRounds:3,
@@ -724,6 +753,7 @@ document.getElementById('btn-sort-init').addEventListener('click',sortByInit);
 document.getElementById('btn-prev-round').addEventListener('click',prevRound);
 document.getElementById('btn-next-round').addEventListener('click',nextRound);
 document.getElementById('btn-clear-all').addEventListener('click',confirmClear);
+document.getElementById('btn-theme').addEventListener('click',toggleTheme);
 document.getElementById('btn-print-export').addEventListener('click',printExport);
 document.getElementById('btn-modal-cancel').addEventListener('click',closeModal);
 document.getElementById('btn-modal-confirm').addEventListener('click',doClear);

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20stroke%3D'%23e5e5e5'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M21%208%2012%203%203%208l9%205%209-5z'%2F%3E%3Cpath%20d%3D'M3%208v8l9%205%209-5V8'%2F%3E%3Cpath%20d%3D'M12%2013v8'%2F%3E%3C%2Fsvg%3E">
 <meta name="robots" content="noindex">
 <title>Package Tracking</title>
 <style>
@@ -81,7 +82,7 @@
     background: #111;
   }
 
-  input::placeholder { color: #525252; }
+  input::placeholder { color: #808080; }
 
   .input-btn {
     position: absolute;
@@ -123,7 +124,11 @@
     word-break: break-all;
   }
 
-  .recent { margin: 12px 0 4px; }
+  .recent {
+    margin: 24px 0 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 16px;
+  }
 
   .recent-header {
     display: flex;
@@ -345,10 +350,11 @@
 
   .url {
     display: block;
-    color: #8a8a8a;
+    color: #a3a3a3;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 12px;
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 2px;
     word-break: break-all;
     line-height: 1.4;
     padding: 6px 0 10px;
@@ -356,14 +362,25 @@
   }
 
   .url:hover {
-    color: #a3a3a3;
-    text-decoration: underline;
+    color: #d4d4d4;
   }
 
   .url.disabled {
-    color: #404040;
+    color: #5a5a5a;
     pointer-events: none;
     cursor: default;
+    text-decoration: none;
+  }
+
+  /* External-link marker on the active link: the URL otherwise reads as
+     plain grey text. The ↗ signals "opens in a new tab" so the link is an
+     obvious manual fallback if the Track button's window.open is blocked. */
+  .url:not(.disabled)::after {
+    content: ' ↗';
+    display: inline-block;
+    text-decoration: none;
+    opacity: 0.65;
+    margin-left: 1px;
   }
 
   #trackBtn {
@@ -428,9 +445,19 @@
     white-space: nowrap;
     border: 0;
   }
+
+  .noscript {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    color: #f97316;
+    font-size: 15px;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
+  <noscript><p class="noscript">This tool requires JavaScript to detect carriers and build tracking links.</p></noscript>
   <main class="container">
     <header>
       <h1>Package Tracking</h1>
@@ -458,14 +485,6 @@
         <p id="normalizedHint" class="hint" hidden></p>
       </div>
 
-      <div id="recentSection" class="recent" hidden>
-        <div class="recent-header">
-          <span class="recent-label">Recent</span>
-          <button type="button" id="clearHistoryBtn" class="recent-clear">Clear</button>
-        </div>
-        <div id="recentList" class="recent-list"></div>
-      </div>
-
       <section class="result">
         <div id="detectionStatus" class="sr-only" aria-live="polite" role="status"></div>
 
@@ -491,6 +510,14 @@
 
       <button id="trackBtn" type="submit" disabled>Track in new tab</button>
     </form>
+
+    <div id="recentSection" class="recent" hidden>
+      <div class="recent-header">
+        <span class="recent-label">Recent</span>
+        <button type="button" id="clearHistoryBtn" class="recent-clear">Clear</button>
+      </div>
+      <div id="recentList" class="recent-list"></div>
+    </div>
   </main>
 
   <script>
@@ -570,11 +597,35 @@
       return (serial % 7) === Number(tn[9]);
     }
 
+    // FedEx Express 12-digit: weighted mod-11 over 11 serial digits, weights
+    // 3,1,7 repeating from left; check = sum%11%10 (10 wraps to 0).
+    // Source: jkeen/tracking_number_data, verified against test vectors.
+    function validateFedExExpress(tn) {
+      const weights = [3, 1, 7, 3, 1, 7, 3, 1, 7, 3, 1];
+      let sum = 0;
+      for (let i = 0; i < 11; i++) sum += Number(tn[i]) * weights[i];
+      return (sum % 11 % 10) === Number(tn[11]);
+    }
+
+    // FedEx 34-digit (Express 34 "100…" / Ground GSN "96…"): weighted mod-11
+    // over the 13-digit SerialNumber (positions 20-32), weights 1,7,3
+    // repeating; check = sum%11%10. Source: jkeen/tracking_number_data,
+    // verified against test vectors for both sub-formats. The 22-digit
+    // Ground 96 format has its own mod-10 validator on fedex-ground-96.
+    function validateFedExLong(tn) {
+      if (tn.length !== 34) return null;
+      const weights = [1, 7, 3, 1, 7, 3, 1, 7, 3, 1, 7, 3, 1];
+      let sum = 0;
+      for (let i = 0; i < 13; i++) sum += Number(tn[20 + i]) * weights[i];
+      return (sum % 11 % 10) === Number(tn[33]);
+    }
+
     // -------- Carrier definitions --------
-    // Order matters: the first matching entry wins. FedEx SmartPost is listed
-    // before USPS IMpb because 9261 is FedEx's published SmartPost prefix,
-    // but 9261 also appears on USPS IMpb (last-mile handoff), so SmartPost
-    // matches are marked medium confidence to surface the ambiguity.
+    // Order matters: the first matching entry wins. FedEx SmartPost and FedEx
+    // Ground 96 are listed before USPS IMpb: 9261 is FedEx's SmartPost prefix
+    // (also on USPS IMpb last-mile handoff, so medium confidence), and the 96
+    // prefix is FedEx-specific but 22-digit 9… numbers also satisfy the IMpb
+    // regex, so IMpb would otherwise claim Ground 96 numbers.
     // Tracking URLs verified 2026-08. Carriers periodically change URL schemes
     // (params like DHL's tracking-id are especially volatile) — re-verify if
     // redirects start landing on error pages.
@@ -593,6 +644,18 @@
         urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
         confidence: 'medium'
       },
+      // FedEx Ground 96 (22-digit) precedes USPS IMpb: the 96 prefix is
+      // FedEx-specific, but 22-digit 9… numbers also match the IMpb regex, so
+      // IMpb would otherwise claim them. Check digit is mod-10 over the
+      // rightmost 15 digits (the 96 AI and 5 service/SCNC digits are excluded).
+      // Verified against jkeen/tracking_number_data test vectors.
+      {
+        id: 'fedex-ground-96',
+        name: 'FedEx',
+        match: /^96\d{20}$/,
+        urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
+        validate: (tn) => mod10Check(tn.slice(-15))
+      },
       {
         id: 'usps-s10',
         name: 'USPS',
@@ -608,25 +671,47 @@
         validate: validateIMpb
       },
       {
-        id: 'fedex-short',
+        id: 'fedex-express',
         name: 'FedEx',
-        match: /^(\d{12}|\d{15})$/,
+        match: /^\d{12}$/,
         urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
-        confidence: 'medium'
+        validate: validateFedExExpress
       },
       {
-        id: 'fedex',
+        id: 'fedex-ground',
         name: 'FedEx',
-        match: /^(\d{20}|\d{22}|100\d{31}|96\d{32})$/,
-        urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}'
+        match: /^\d{15}$/,
+        urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
+        validate: (tn) => mod10Check(tn)
+      },
+      // 34-digit FedEx (Express 34 "100…" and Ground GSN "96…"): weighted
+      // mod-11 over the 13-digit SerialNumber at positions 20-32, check at 33.
+      // Verified against jkeen vectors for both sub-formats.
+      {
+        id: 'fedex-long',
+        name: 'FedEx',
+        match: /^(100\d{31}|96\d{32})$/,
+        urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
+        validate: validateFedExLong
+      },
+      // 20/22-digit FedEx fallback: 96-prefixed 22 is handled above and
+      // 9-prefixed 20/22 is claimed by USPS IMpb, so this only catches 20/22
+      // digit numbers starting 1–8. No confidently documented check algorithm
+      // for these lengths → medium confidence (no "high" without a passing
+      // check).
+      {
+        id: 'fedex-other',
+        name: 'FedEx',
+        match: /^(\d{20}|\d{22})$/,
+        urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
+        confidence: 'medium'
       },
       {
         id: 'dhl-express',
         name: 'DHL',
         match: /^\d{10}$/,
         urlTemplate: 'https://www.dhl.com/us-en/home/tracking.html?tracking-id={tn}&submit=1',
-        validate: validateDhl,
-        confidence: 'medium'
+        validate: validateDhl
       },
       {
         id: 'amazon',
@@ -636,9 +721,11 @@
       }
     ];
 
-    const URL_BY_CARRIER = {};
+    const CARRIER_BY_ID = {};
+    const URL_BY_NAME = {};
     for (const c of CARRIERS) {
-      if (!(c.name in URL_BY_CARRIER)) URL_BY_CARRIER[c.name] = c.urlTemplate;
+      CARRIER_BY_ID[c.id] = c;
+      if (!(c.name in URL_BY_NAME)) URL_BY_NAME[c.name] = c.urlTemplate;
     }
 
     const CONFIDENCE_LABELS = {
@@ -747,7 +834,7 @@
         item.addEventListener('click', () => {
           setInput(h.tn, h.carrier || null);
           if (h.carrier && state.normalized) {
-            const url = buildUrl(h.carrier, state.normalized);
+            const url = buildUrl(h.carrier, state.normalized, null);
             if (url) {
               addToHistory(state.normalized, h.carrier);
               openTrackingUrl(url);
@@ -818,9 +905,11 @@
       return { id: null, name: null, confidence: 'unknown', valid: null };
     }
 
-    function buildUrl(carrierName, tn) {
-      const template = URL_BY_CARRIER[carrierName];
-      if (!template || !tn) return '';
+    function buildUrl(carrierName, tn, carrierId) {
+      if (!carrierName || !tn) return '';
+      const byId = carrierId ? CARRIER_BY_ID[carrierId] : null;
+      const template = (byId && byId.urlTemplate) || URL_BY_NAME[carrierName];
+      if (!template) return '';
       return template.replace('{tn}', encodeURIComponent(tn));
     }
 
@@ -886,21 +975,28 @@
 
       // The aria-live region announces the actionable *selected* carrier, not
       // just the detection result, so manual overrides are surfaced to AT.
+      // Only update the region when the announcement actually changes, so
+      // typing within the same number does not re-announce every keystroke.
       const selected = state.selectedCarrier;
+      let announce;
       if (hasInput && selected) {
         if (state.override && name && name !== selected) {
-          els.detectionStatus.textContent = `Detected ${name}. Selected: ${selected}.`;
+          announce = `Detected ${name}. Selected: ${selected}.`;
         } else if (valid === false) {
-          els.detectionStatus.textContent = `Selected ${selected}. Confidence ${CONFIDENCE_LABELS[conf]} — check digit mismatch, possible typo.`;
+          announce = `Selected ${selected}. Confidence ${CONFIDENCE_LABELS[conf]} — check digit mismatch, possible typo.`;
         } else {
-          els.detectionStatus.textContent = `Selected ${selected}. Confidence ${CONFIDENCE_LABELS[conf]}.`;
+          announce = `Selected ${selected}. Confidence ${CONFIDENCE_LABELS[conf]}.`;
         }
       } else if (hasInput) {
-        els.detectionStatus.textContent = 'Unknown carrier. Choose a carrier manually.';
+        announce = 'Unknown carrier. Choose a carrier manually.';
       } else if (selected) {
-        els.detectionStatus.textContent = `Selected ${selected}. Enter a tracking number.`;
+        announce = `Selected ${selected}. Enter a tracking number.`;
       } else {
-        els.detectionStatus.textContent = '';
+        announce = '';
+      }
+      if (announce !== lastAnnounced) {
+        els.detectionStatus.textContent = announce;
+        lastAnnounced = announce;
       }
     }
 
@@ -919,12 +1015,13 @@
 
     function updateURLAndButton() {
       const selected = state.selectedCarrier;
-      const url = buildUrl(selected, state.normalized);
+      const id = state.override ? null : state.detected.id;
+      const url = buildUrl(selected, state.normalized, id);
 
       if (url) {
         els.urlLink.setAttribute('href', url);
         els.urlLink.textContent = url;
-        els.urlLink.setAttribute('aria-label', `${url} (opens in a new tab)`);
+        els.urlLink.setAttribute('aria-label', `Open tracking link for ${selected} (opens in a new tab)`);
         els.urlLink.classList.remove('disabled');
         els.trackBtn.disabled = false;
         els.trackBtn.textContent = `Track on ${selected}`;
@@ -939,6 +1036,7 @@
     }
 
     let debounceTimer;
+    let lastAnnounced = '';
     function setInput(tn, carrier) {
       clearTimeout(debounceTimer);
       els.input.value = tn;
@@ -1025,7 +1123,7 @@
       updateURLAndButton();
       updateDetectionUI();
       if (openImmediately && state.normalized) {
-        const url = buildUrl(carrier, state.normalized);
+        const url = buildUrl(carrier, state.normalized, null);
         if (url) {
           addToHistory(state.normalized, carrier);
           openTrackingUrl(url);
@@ -1050,7 +1148,7 @@
         newIdx = (idx - 1 + els.pills.length) % els.pills.length;
       } else if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        selectPill(btn.dataset.carrier);
+        selectPill(btn.dataset.carrier, true);
         return;
       }
 
@@ -1090,11 +1188,24 @@
     updateURLAndButton();
     renderHistory();
 
+    // Relative timestamps in the recent list ("just now", "5m ago") are
+    // computed at render time. Re-render once a minute while the tab is
+    // visible and history is shown, so they don't go stale.
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && !els.historySection.hidden) {
+        renderHistory();
+      }
+    }, 60000);
+
     if (location.hash.length > 1) {
-      const hashTn = decodeURIComponent(location.hash.slice(1));
+      let hashTn;
+      try {
+        hashTn = decodeURIComponent(location.hash.slice(1));
+      } catch {
+        hashTn = location.hash.slice(1);
+      }
       if (hashTn) {
-        els.input.value = hashTn;
-        onInput(hashTn);
+        setInput(hashTn, null);
       }
     }
 

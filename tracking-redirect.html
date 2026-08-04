@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<title>Package Tracking</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: #000;
+    color: #e5e5e5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 32px 20px 56px;
+  }
+
+  @media (min-width: 768px) {
+    .container { padding: 72px 32px 96px; }
+  }
+
+  header { margin-bottom: 28px; }
+
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+
+  @media (min-width: 768px) {
+    h1 { font-size: 30px; }
+  }
+
+  .field { margin-bottom: 4px; }
+
+  label.label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #a3a3a3;
+  }
+
+  .input-wrap { position: relative; }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 14px 52px 14px 16px;
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 1.4;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 48px;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #fff;
+    background: #111;
+  }
+
+  input::placeholder { color: #525252; }
+
+  .input-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #a3a3a3;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .input-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .input-btn:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  .input-btn svg { display: block; pointer-events: none; }
+
+  .hint {
+    margin: 6px 2px 0;
+    font-size: 12px;
+    color: #525252;
+    line-height: 1.4;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    word-break: break-all;
+  }
+
+  .result {
+    margin: 24px 0;
+    padding: 4px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .detected-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  .detected-name {
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .detected-name.unknown { color: #a3a3a3; }
+
+  .conf {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .conf-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #525252;
+    flex-shrink: 0;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .conf.high .conf-dot { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.45); }
+  .conf.high .conf-text { color: #22c55e; }
+  .conf.medium .conf-dot { background: #fbbf24; box-shadow: 0 0 8px rgba(251, 191, 36, 0.45); }
+  .conf.medium .conf-text { color: #fbbf24; }
+  .conf.unknown .conf-dot { background: #525252; box-shadow: none; }
+  .conf.unknown .conf-text { color: #737373; }
+
+  .pills {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0 8px;
+  }
+
+  .pill {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: 12px 8px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  }
+
+  .pill[aria-checked="true"] {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+  }
+
+  .pill:hover:not([aria-checked="true"]) {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .pill:active { transform: scale(0.98); }
+
+  .url {
+    display: block;
+    color: #737373;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    text-decoration: none;
+    word-break: break-all;
+    line-height: 1.4;
+    padding: 6px 0 10px;
+    min-height: 32px;
+  }
+
+  .url:hover {
+    color: #a3a3a3;
+    text-decoration: underline;
+  }
+
+  .url.disabled {
+    color: #404040;
+    pointer-events: none;
+    cursor: default;
+  }
+
+  #trackBtn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.05s ease;
+    min-height: 48px;
+  }
+
+  #trackBtn:hover:not(:disabled) { opacity: 0.92; }
+  #trackBtn:active:not(:disabled) { transform: scale(0.98); }
+
+  #trackBtn:disabled {
+    background: #1a1a1a;
+    color: #525252;
+    cursor: not-allowed;
+  }
+
+  @media (min-width: 768px) {
+    #trackBtn {
+      width: auto;
+      min-width: 220px;
+    }
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  .pill:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Package Tracking</h1>
+    </header>
+
+    <form id="trackForm">
+      <div class="field">
+        <label class="label" for="trackingInput">Tracking number</label>
+        <div class="input-wrap">
+          <input
+            id="trackingInput"
+            name="tracking"
+            type="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
+            spellcheck="false"
+            inputmode="text"
+            maxlength="48"
+            placeholder="e.g., 1Z12345E0205271688"
+            aria-describedby="normalizedHint"
+          />
+          <button id="pasteClearBtn" type="button" class="input-btn" aria-label="Paste" hidden></button>
+        </div>
+        <p id="normalizedHint" class="hint" hidden></p>
+      </div>
+
+      <section class="result">
+        <div id="detectionStatus" class="sr-only" aria-live="polite"></div>
+
+        <div class="detected-line">
+          <span id="detectedName" class="detected-name unknown">—</span>
+          <span id="confidence" class="conf unknown" hidden>
+            <span class="conf-dot"></span>
+            <span class="conf-text">—</span>
+          </span>
+        </div>
+
+        <div id="carrierPills" class="pills" role="radiogroup" aria-label="Carrier">
+          <button type="button" class="pill" role="radio" aria-checked="false" tabindex="-1" data-carrier="UPS">UPS</button>
+          <button type="button" class="pill" role="radio" aria-checked="false" tabindex="-1" data-carrier="USPS">USPS</button>
+          <button type="button" class="pill" role="radio" aria-checked="false" tabindex="-1" data-carrier="FedEx">FedEx</button>
+        </div>
+
+        <a id="urlLink" class="url disabled" target="_blank" rel="noopener noreferrer">—</a>
+      </section>
+
+      <button id="trackBtn" type="submit" disabled>Track in new tab</button>
+    </form>
+  </main>
+
+  <script>
+    const CARRIERS = [
+      {
+        id: 'ups',
+        name: 'UPS',
+        match: /^1Z[0-9A-Z]{16}$/,
+        urlTemplate: 'https://www.ups.com/track?loc=en_US&tracknum={tn}',
+        confidence: 'high'
+      },
+      {
+        id: 'usps-s10',
+        name: 'USPS',
+        match: /^[A-Z]{2}\d{9}[A-Z]{2}$/,
+        urlTemplate: 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels={tn}',
+        confidence: 'high'
+      },
+      {
+        id: 'usps-impb',
+        name: 'USPS',
+        match: /^(9\d{19,25}|420\d{25,31})$/,
+        urlTemplate: 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels={tn}',
+        confidence: (tn) => (tn.length === 20 || tn.length === 22 || tn.length === 26 || tn.length === 30 || tn.length === 34) ? 'medium' : 'high'
+      },
+      {
+        id: 'fedex',
+        name: 'FedEx',
+        match: /^(\d{12}|\d{15}|\d{18}|\d{20}|\d{22}|100\d{31}|96\d{32})$/,
+        urlTemplate: 'https://www.fedex.com/fedextrack/?trknbr={tn}',
+        confidence: (tn) => tn.length === 12 ? 'medium' : 'high'
+      }
+    ];
+
+    const URL_BY_CARRIER = {
+      UPS: 'https://www.ups.com/track?loc=en_US&tracknum={tn}',
+      USPS: 'https://tools.usps.com/go/TrackConfirmAction.action?tLabels={tn}',
+      FedEx: 'https://www.fedex.com/fedextrack/?trknbr={tn}'
+    };
+
+    const CONFIDENCE_LABELS = {
+      high: 'High',
+      medium: 'Medium',
+      unknown: 'Unknown'
+    };
+
+    const PILL_CARRIERS = ['UPS', 'USPS', 'FedEx'];
+
+    const PASTE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>';
+    const CLEAR_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+    const supportsClipboardRead = typeof navigator !== 'undefined'
+      && !!navigator.clipboard
+      && typeof navigator.clipboard.readText === 'function';
+
+    function isDesktop() {
+      return matchMedia('(hover: hover) and (pointer: fine)').matches;
+    }
+
+    const els = {
+      input: document.getElementById('trackingInput'),
+      pasteClearBtn: document.getElementById('pasteClearBtn'),
+      normalizedHint: document.getElementById('normalizedHint'),
+      detectedName: document.getElementById('detectedName'),
+      confidence: document.getElementById('confidence'),
+      confText: document.querySelector('#confidence .conf-text'),
+      pills: Array.from(document.querySelectorAll('#carrierPills .pill')),
+      urlLink: document.getElementById('urlLink'),
+      trackBtn: document.getElementById('trackBtn'),
+      form: document.getElementById('trackForm'),
+      detectionStatus: document.getElementById('detectionStatus')
+    };
+
+    const state = {
+      normalized: '',
+      detected: { name: null, confidence: 'unknown' },
+      selectedCarrier: null
+    };
+
+    function normalize(raw) {
+      return raw.replace(/[\s.\-]/g, '').toUpperCase().trim();
+    }
+
+    function detect(tn) {
+      if (!tn) return { name: null, confidence: 'unknown' };
+      for (const c of CARRIERS) {
+        if (c.match.test(tn)) {
+          const conf = typeof c.confidence === 'function' ? c.confidence(tn) : c.confidence;
+          return { name: c.name, confidence: conf };
+        }
+      }
+      return { name: null, confidence: 'unknown' };
+    }
+
+    function buildUrl(carrierName, tn) {
+      const template = URL_BY_CARRIER[carrierName];
+      if (!template || !tn) return '';
+      return template.replace('{tn}', encodeURIComponent(tn));
+    }
+
+    function updateNormalizedHint(raw) {
+      const normalized = normalize(raw);
+      const trimmed = raw.trim();
+      if (normalized && normalized !== trimmed) {
+        els.normalizedHint.textContent = normalized;
+        els.normalizedHint.hidden = false;
+      } else {
+        els.normalizedHint.textContent = '';
+        els.normalizedHint.hidden = true;
+      }
+    }
+
+    function updatePasteClearButton() {
+      const hasText = els.input.value.length > 0;
+      if (hasText) {
+        els.pasteClearBtn.innerHTML = CLEAR_ICON;
+        els.pasteClearBtn.setAttribute('aria-label', 'Clear');
+        els.pasteClearBtn.title = 'Clear';
+        els.pasteClearBtn.hidden = false;
+      } else if (supportsClipboardRead) {
+        els.pasteClearBtn.innerHTML = PASTE_ICON;
+        els.pasteClearBtn.setAttribute('aria-label', 'Paste');
+        els.pasteClearBtn.title = 'Paste';
+        els.pasteClearBtn.hidden = false;
+      } else {
+        els.pasteClearBtn.hidden = true;
+      }
+    }
+
+    function updateDetectionUI() {
+      const { name, confidence: conf } = state.detected;
+      const hasInput = !!state.normalized;
+
+      if (hasInput) {
+        els.detectedName.textContent = name || 'Unknown';
+        els.detectedName.classList.toggle('unknown', !name);
+        els.confidence.hidden = false;
+        els.confidence.classList.remove('high', 'medium', 'unknown');
+        els.confidence.classList.add(conf);
+        els.confText.textContent = CONFIDENCE_LABELS[conf];
+      } else {
+        els.detectedName.textContent = '—';
+        els.detectedName.classList.add('unknown');
+        els.confidence.hidden = true;
+      }
+
+      if (hasInput) {
+        els.detectionStatus.textContent = name
+          ? `Detected ${name}. Confidence: ${CONFIDENCE_LABELS[conf]}.`
+          : 'Unknown carrier. Choose a carrier manually.';
+      } else {
+        els.detectionStatus.textContent = '';
+      }
+    }
+
+    function updatePillsUI() {
+      let anySelected = false;
+      els.pills.forEach(btn => {
+        const selected = btn.dataset.carrier === state.selectedCarrier;
+        btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+        btn.tabIndex = selected ? 0 : -1;
+        if (selected) anySelected = true;
+      });
+      if (!anySelected && els.pills.length > 0) {
+        els.pills[0].tabIndex = 0;
+      }
+    }
+
+    function updateURLAndButton() {
+      const selected = state.selectedCarrier;
+      const url = buildUrl(selected, state.normalized);
+
+      if (url) {
+        els.urlLink.setAttribute('href', url);
+        els.urlLink.textContent = url;
+        els.urlLink.classList.remove('disabled');
+        els.trackBtn.disabled = false;
+        els.trackBtn.textContent = `Track on ${selected}`;
+      } else {
+        els.urlLink.removeAttribute('href');
+        els.urlLink.textContent = '—';
+        els.urlLink.classList.add('disabled');
+        els.trackBtn.disabled = true;
+        els.trackBtn.textContent = 'Track in new tab';
+      }
+    }
+
+    let debounceTimer;
+    function onInput(raw) {
+      state.normalized = normalize(raw);
+      updateNormalizedHint(raw);
+      updatePasteClearButton();
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        state.detected = detect(state.normalized);
+        state.selectedCarrier = state.detected.name || null;
+        updateDetectionUI();
+        updatePillsUI();
+        updateURLAndButton();
+      }, 150);
+    }
+
+    function resetState() {
+      els.input.value = '';
+      state.normalized = '';
+      state.detected = { name: null, confidence: 'unknown' };
+      state.selectedCarrier = null;
+      updateNormalizedHint('');
+      updatePasteClearButton();
+      updateDetectionUI();
+      updatePillsUI();
+      updateURLAndButton();
+    }
+
+    function onPasteClearClick() {
+      if (els.input.value.length > 0) {
+        resetState();
+        els.input.focus();
+        return;
+      }
+      if (!supportsClipboardRead) {
+        els.input.focus();
+        return;
+      }
+      navigator.clipboard.readText().then(text => {
+        if (text) {
+          els.input.value = text;
+          onInput(text);
+          if (isDesktop()) els.input.focus();
+        } else {
+          els.input.focus();
+        }
+      }).catch(() => {
+        els.input.focus();
+      });
+    }
+
+    function selectPill(carrier) {
+      state.selectedCarrier = carrier;
+      updatePillsUI();
+      updateURLAndButton();
+    }
+
+    function onPillClick(e) {
+      const btn = e.currentTarget;
+      selectPill(btn.dataset.carrier);
+      btn.focus();
+    }
+
+    function onPillKeydown(e) {
+      const btn = e.currentTarget;
+      const carrier = btn.dataset.carrier;
+      const idx = PILL_CARRIERS.indexOf(carrier);
+      let newIdx = null;
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        newIdx = (idx + 1) % PILL_CARRIERS.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        newIdx = (idx - 1 + PILL_CARRIERS.length) % PILL_CARRIERS.length;
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        selectPill(carrier);
+        return;
+      }
+
+      if (newIdx !== null) {
+        e.preventDefault();
+        const newCarrier = PILL_CARRIERS[newIdx];
+        selectPill(newCarrier);
+        const newBtn = els.pills.find(b => b.dataset.carrier === newCarrier);
+        if (newBtn) newBtn.focus();
+      }
+    }
+
+    els.input.addEventListener('input', (e) => onInput(e.target.value));
+    els.pasteClearBtn.addEventListener('click', onPasteClearClick);
+    els.pills.forEach(btn => {
+      btn.addEventListener('click', onPillClick);
+      btn.addEventListener('keydown', onPillKeydown);
+    });
+
+    els.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const url = els.urlLink.getAttribute('href');
+      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    });
+
+    updatePasteClearButton();
+    updatePillsUI();
+    updateURLAndButton();
+
+    if (isDesktop()) {
+      els.input.focus();
+    }
+  </script>
+</body>
+</html>
